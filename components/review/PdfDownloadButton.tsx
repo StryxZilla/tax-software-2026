@@ -50,7 +50,7 @@ export default function PdfDownloadButton({ taxReturn }: PdfDownloadButtonProps)
       link.href = url;
 
       // Create filename with taxpayer name and year
-      const fileName = `Tax_Return_2025_${taxReturn.personalInfo.lastName}_${taxReturn.personalInfo.firstName}.pdf`;
+      const fileName = `Tax_Return_2026_${taxReturn.personalInfo.lastName}_${taxReturn.personalInfo.firstName}.pdf`;
       link.download = fileName;
 
       document.body.appendChild(link);

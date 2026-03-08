@@ -52,7 +52,7 @@ function LoginForm() {
             className="h-16 w-16 mx-auto mb-3 rounded-2xl border border-slate-200 bg-white object-cover object-top shadow-sm"
           />
           <h1 className="text-4xl font-extrabold text-slate-900">Zoey&apos;s Tax Advisory</h1>
-          <p className="text-slate-500 mt-1 font-medium">2025 filing workspace</p>
+          <p className="text-slate-500 mt-1 font-medium">2026 filing workspace</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl border border-slate-100 p-8">

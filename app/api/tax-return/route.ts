@@ -15,7 +15,7 @@ export async function GET() {
       where: {
         userId_year: {
           userId: session.user.id,
-          year: 2025,
+          year: 2026,
         },
       },
     })
@@ -53,7 +53,7 @@ export async function PUT(request: Request) {
       where: {
         userId_year: {
           userId: session.user.id,
-          year: 2025,
+          year: 2026,
         },
       },
       update: {
@@ -61,7 +61,7 @@ export async function PUT(request: Request) {
       },
       create: {
         userId: session.user.id,
-        year: 2025,
+        year: 2026,
         data: JSON.stringify(data),
       },
     })

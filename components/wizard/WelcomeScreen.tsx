@@ -77,7 +77,7 @@ export interface SavedDraftInfo {
 /** Check localStorage for a saved draft without needing React context */
 export function detectSavedDraft(): SavedDraftInfo | null {
   try {
-    const savedData = localStorage.getItem('taxReturn2025');
+    const savedData = localStorage.getItem('taxReturn2026');
     const savedStep = localStorage.getItem('currentStep');
     const savedCompleted = localStorage.getItem('completedSteps');
 
@@ -118,7 +118,7 @@ export default function WelcomeScreen({ onStart, onResume, onStartOver }: Welcom
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">
         <section className="bg-white rounded-2xl border border-slate-200 p-8 sm:p-10 shadow-sm">
           <div className="inline-flex items-center gap-2 bg-slate-100 text-slate-700 text-sm font-semibold px-3 py-1 rounded-full mb-4 border border-slate-200">
-            <span>2025 Tax Year</span>
+            <span>2026 Tax Year</span>
           </div>
 
           <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 leading-tight">

@@ -150,7 +150,7 @@ export function TaxReturnProvider({ children }: { children: ReactNode }) {
       } else {
         // DB has no data yet — fall back to localStorage (covers the case
         // where a debounced DB save hadn't completed before refresh).
-        const localData = localStorage.getItem('taxReturn2025')
+        const localData = localStorage.getItem('taxReturn2026')
         if (localData) {
           const parsed = JSON.parse(localData)
           setTaxReturn(parsed)
@@ -276,7 +276,7 @@ export function TaxReturnProvider({ children }: { children: ReactNode }) {
 
   const saveToLocalStorage = () => {
     try {
-      localStorage.setItem('taxReturn2025', JSON.stringify(taxReturn))
+      localStorage.setItem('taxReturn2026', JSON.stringify(taxReturn))
       localStorage.setItem('currentStep', currentStep)
       localStorage.setItem('completedSteps', JSON.stringify([...completedSteps]))
       localStorage.setItem('skippedSteps', JSON.stringify([...skippedSteps]))
@@ -292,7 +292,7 @@ export function TaxReturnProvider({ children }: { children: ReactNode }) {
 
   const loadFromLocalStorage = () => {
     try {
-      const saved = localStorage.getItem('taxReturn2025')
+      const saved = localStorage.getItem('taxReturn2026')
       const savedStep = localStorage.getItem('currentStep')
       const savedCompleted = localStorage.getItem('completedSteps')
       const savedSkipped = localStorage.getItem('skippedSteps')
@@ -318,7 +318,7 @@ export function TaxReturnProvider({ children }: { children: ReactNode }) {
   // Import localStorage data into DB (called after login if user wants to migrate)
   const importFromLocalStorage = async () => {
     try {
-      const saved = localStorage.getItem('taxReturn2025')
+      const saved = localStorage.getItem('taxReturn2026')
       if (!saved) return
       const data = JSON.parse(saved)
       await fetch('/api/tax-return', {
@@ -344,7 +344,7 @@ export function TaxReturnProvider({ children }: { children: ReactNode }) {
     setCompletedSteps(new Set())
     setSkippedSteps(new Set())
     setTaxCalculation(null)
-    localStorage.removeItem('taxReturn2025')
+    localStorage.removeItem('taxReturn2026')
     localStorage.removeItem('currentStep')
     localStorage.removeItem('completedSteps')
     localStorage.removeItem('skippedSteps')

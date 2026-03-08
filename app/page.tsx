@@ -493,7 +493,7 @@ function WizardStepContent() {
 function ImportBanner() {
   const { importFromLocalStorage } = useTaxReturn()
   const [show] = useState(() => {
-    const hasLocalData = !!localStorage.getItem('taxReturn2025')
+    const hasLocalData = !!localStorage.getItem('taxReturn2026')
     const alreadyAsked = !!sessionStorage.getItem('importAsked')
     return hasLocalData && !alreadyAsked
   })
