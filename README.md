@@ -78,6 +78,13 @@ Manual scenario testing:
 - [`TESTING.md`](./TESTING.md)
 - [`TESTING-WINDOWS.md`](./TESTING-WINDOWS.md)
 
+UI debug kit (fast local repro/verify):
+- [`docs/UI-DEBUG-KIT.md`](./docs/UI-DEBUG-KIT.md)
+- `npm run ui:prep`
+- `npm run ui:smoke`
+- `npm run ui:screenshots`
+- `npm run ui:debug`
+
 ## Tech Stack
 
 - Next.js 16.1.6

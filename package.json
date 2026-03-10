@@ -21,7 +21,12 @@
     "test:e2e": "playwright test",
     "test:e2e:critical": "playwright test --grep @critical",
     "test:e2e:visual": "playwright test --grep @visual",
-    "test:smoke": "tsc --noEmit && vitest run && playwright test --grep @visual"
+    "test:smoke": "tsc --noEmit && vitest run && playwright test --grep @visual",
+    "ui:prep": "npm run win:setup",
+    "ui:dev": "npm run win:run",
+    "ui:smoke": "playwright test tests/e2e/ui-smoke.spec.ts",
+    "ui:screenshots": "playwright test tests/e2e/ui-screenshots.spec.ts",
+    "ui:debug": "npm run ui:smoke && npm run ui:screenshots"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",
