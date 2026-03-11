@@ -1,4 +1,5 @@
 import { test, expect } from './fixtures'
+import { startReturnButton, nextButton } from './selectors'
 
 test('ssn live validation blocks progress until valid format @critical-ssn', async ({ page }) => {
   await page.goto('/auth/login')
@@ -15,18 +16,18 @@ test('ssn live validation blocks progress until valid format @critical-ssn', asy
   await page.getByRole('button', { name: 'Create account' }).click()
 
   await expect(page).toHaveURL('/', { timeout: 15000 })
-  await page.getByRole('button', { name: "Let's Get Started" }).first().click()
+  await startReturnButton(page).click()
 
   const ssnInput = page.getByPlaceholder('XXX-XX-XXXX').first()
-  const nextButton = page.getByRole('button', { name: 'Next →' })
+  const next = nextButton(page)
 
   await ssnInput.fill('1')
   await expect(page.getByText('Keep typing: 1/9 digits entered')).toBeVisible()
-  await expect(nextButton).toBeDisabled()
+  await expect(next).toBeDisabled()
 
   await ssnInput.fill('12345')
   await expect(page.getByText('Keep typing: 5/9 digits entered')).toBeVisible()
-  await expect(nextButton).toBeDisabled()
+  await expect(next).toBeDisabled()
 
   await ssnInput.fill('123456789')
   await expect(ssnInput).toHaveValue('123-45-6789')
@@ -39,7 +40,7 @@ test('ssn live validation blocks progress until valid format @critical-ssn', asy
   await page.getByPlaceholder('TX').fill('TX')
   await page.getByPlaceholder('12345').fill('73301')
 
-  await expect(nextButton).toBeEnabled()
-  await nextButton.click()
+  await expect(next).toBeEnabled()
+  await next.click()
   await expect(page.getByRole('heading', { name: 'Dependents', exact: true })).toBeVisible()
 })

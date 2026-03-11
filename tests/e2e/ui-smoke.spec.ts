@@ -1,4 +1,5 @@
 import { test, expect } from './fixtures'
+import { startReturnButton, nextButton } from './selectors'
 
 test.describe('UI debug kit smoke @ui-smoke', () => {
   test('login page is reachable via root redirect', async ({ page }) => {
@@ -30,7 +31,7 @@ test.describe('UI debug kit smoke @ui-smoke', () => {
     await page.getByRole('button', { name: 'Create account' }).click()
 
     await expect(page).toHaveURL('/', { timeout: 15000 })
-    await page.getByRole('button', { name: /Start your return|Let's Get Started/i }).first().click()
+    await startReturnButton(page).click()
 
     await expect(page.getByRole('heading', { name: 'Personal Information' })).toBeVisible()
 
@@ -43,7 +44,7 @@ test.describe('UI debug kit smoke @ui-smoke', () => {
     await page.getByPlaceholder('TX').fill('TX')
     await page.getByPlaceholder('12345').fill('73301')
 
-    await page.getByRole('button', { name: 'Next →' }).click()
+    await nextButton(page).click()
     await expect(page.getByRole('heading', { name: 'Dependents', exact: true })).toBeVisible()
   })
 })

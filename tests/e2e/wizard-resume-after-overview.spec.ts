@@ -1,4 +1,5 @@
 import { test, expect } from './fixtures'
+import { nextButton } from './selectors'
 
 test('resume draft survives Back to Overview navigation', async ({ page }) => {
   test.setTimeout(60_000)
@@ -26,7 +27,7 @@ test('resume draft survives Back to Overview navigation', async ({ page }) => {
   await page.getByPlaceholder('TX').fill('TX')
   await page.getByPlaceholder('12345').fill('73301')
 
-  await page.getByRole('button', { name: 'Next →' }).click()
+  await nextButton(page).click()
   await expect(page.getByRole('heading', { name: 'Dependents', exact: true })).toBeVisible()
 
   await page.getByRole('button', { name: '← Back to Overview' }).click()
@@ -42,3 +43,4 @@ test('resume draft survives Back to Overview navigation', async ({ page }) => {
   await page.getByTestId('resume-draft-btn').click()
   await expect(page.getByRole('heading', { name: 'Dependents', exact: true })).toBeVisible()
 })
+

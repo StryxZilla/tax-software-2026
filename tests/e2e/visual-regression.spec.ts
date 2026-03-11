@@ -1,4 +1,5 @@
 import { test, expect } from './fixtures'
+import { startReturnButton, nextButton } from './selectors'
 
 /**
  * Bug Net v1 — Visual regression tests for critical UX elements.
@@ -20,7 +21,7 @@ test.describe('Visual regression: Currency inputs @visual', () => {
     await page.getByRole('button', { name: 'Create account' }).click()
 
     await expect(page).toHaveURL('/', { timeout: 15000 })
-    await page.getByRole('button', { name: "Let's Get Started" }).first().click()
+    await startReturnButton(page).click()
     await expect(page.getByRole('heading', { name: 'Personal Information' })).toBeVisible()
 
     // Fill required personal info and navigate to W-2
@@ -34,9 +35,9 @@ test.describe('Visual regression: Currency inputs @visual', () => {
     await page.getByPlaceholder('12345').fill('73301')
 
     // Click Next twice: Personal Info → Dependents → W-2
-    await page.getByRole('button', { name: 'Next →' }).click()
+    await nextButton(page).click()
     await page.waitForTimeout(300)
-    await page.getByRole('button', { name: 'Next →' }).click()
+    await nextButton(page).click()
     await page.waitForTimeout(300)
 
     await expect(page.getByRole('heading', { name: 'W-2 Income' })).toBeVisible()
@@ -86,7 +87,7 @@ test.describe('Visual regression: Wizard states @visual', () => {
     await page.getByRole('button', { name: 'Create account' }).click()
 
     await expect(page).toHaveURL('/', { timeout: 15000 })
-    await page.getByRole('button', { name: "Let's Get Started" }).first().click()
+    await startReturnButton(page).click()
     await expect(page.getByRole('heading', { name: 'Personal Information' })).toBeVisible()
 
     // Open steps panel
@@ -115,7 +116,7 @@ test.describe('Visual regression: Wizard states @visual', () => {
     await page.getByPlaceholder('City name').fill('Austin')
     await page.getByPlaceholder('TX').fill('TX')
     await page.getByPlaceholder('12345').fill('73301')
-    await page.getByRole('button', { name: 'Next →' }).click()
+    await nextButton(page).click()
     await page.waitForTimeout(300)
 
     // Re-check steps panel: Personal Info should now show completed (checkmark)
@@ -147,7 +148,7 @@ test.describe('Visual regression: Income pie chart @visual', () => {
     await page.getByRole('button', { name: 'Create account' }).click()
 
     await expect(page).toHaveURL('/', { timeout: 15000 })
-    await page.getByRole('button', { name: "Let's Get Started" }).first().click()
+    await startReturnButton(page).click()
 
     // Fill personal info
     await page.getByPlaceholder('Enter first name').fill('Pie')
@@ -160,9 +161,9 @@ test.describe('Visual regression: Income pie chart @visual', () => {
     await page.getByPlaceholder('12345').fill('73301')
 
     // Navigate to W-2
-    await page.getByRole('button', { name: 'Next →' }).click()
+    await nextButton(page).click()
     await page.waitForTimeout(300)
-    await page.getByRole('button', { name: 'Next →' }).click()
+    await nextButton(page).click()
     await page.waitForTimeout(300)
 
     // Add W-2 with wages
@@ -196,3 +197,5 @@ test.describe('Visual regression: Income pie chart @visual', () => {
     }
   })
 })
+
+

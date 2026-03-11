@@ -1,4 +1,5 @@
 import { test, expect } from './fixtures'
+import { startReturnButton } from './selectors'
 import path from 'node:path'
 import fs from 'node:fs/promises'
 
@@ -30,7 +31,7 @@ test.describe('UI debug kit screenshots @ui-screenshot', () => {
     await page.getByRole('button', { name: 'Create account' }).click()
 
     await expect(page).toHaveURL('/', { timeout: 15000 })
-    await page.getByRole('button', { name: /Start your return|Let's Get Started/i }).first().click()
+    await startReturnButton(page).click()
     await expect(page.getByRole('heading', { name: 'Personal Information' })).toBeVisible()
     await page.screenshot({ path: path.join(screenshotDir, '03-personal-information.png'), fullPage: true })
 

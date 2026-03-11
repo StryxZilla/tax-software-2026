@@ -1,4 +1,5 @@
 import { test, expect } from './fixtures'
+import { nextButton } from './selectors'
 
 /**
  * Critical test: Wizard state must survive a browser refresh.
@@ -37,9 +38,9 @@ test('wizard state persists after browser refresh @critical-smoke', async ({ pag
   await page.getByPlaceholder('12345').fill('73301')
 
   // Click Next — advance past Personal Information
-  const nextButton = page.getByRole('button', { name: 'Next →' })
-  await expect(nextButton).toBeEnabled({ timeout: 10000 })
-  await nextButton.click()
+  const next = nextButton(page)
+  await expect(next).toBeEnabled({ timeout: 10000 })
+  await next.click()
 
   // Verify we advanced past Personal Information
   await expect(page.getByRole('heading', { name: 'Personal Information' })).not.toBeVisible({ timeout: 5000 })
@@ -84,3 +85,4 @@ test('wizard state persists after browser refresh @critical-smoke', async ({ pag
   expect(postParsed.personalInfo.lastName).toBe('User')
   expect(postParsed.personalInfo.address).toBe('123 Main St')
 })
+

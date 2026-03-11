@@ -1,4 +1,5 @@
 import { test, expect } from './fixtures'
+import { startReturnButton, nextButton } from './selectors'
 
 test('app smoke: root redirect/auth pages/basic nav @critical-smoke', async ({ page }) => {
   await page.goto('/')
@@ -29,7 +30,7 @@ test('critical user journey: register and progress wizard to review @critical-sm
   await expect(page).toHaveURL('/', { timeout: 15000 })
   await expect(page.getByText("Welcome to", { exact: false })).toBeVisible({ timeout: 10000 })
 
-  await page.getByRole('button', { name: "Let's Get Started" }).first().click()
+  await startReturnButton(page).click()
   await expect(page.getByRole('heading', { name: 'Personal Information' })).toBeVisible()
 
   await page.getByPlaceholder('Enter first name').fill('QA')
@@ -42,10 +43,10 @@ test('critical user journey: register and progress wizard to review @critical-sm
   await page.getByPlaceholder('12345').fill('73301')
 
   for (let i = 0; i < 12; i += 1) {
-    const nextButton = page.getByRole('button', { name: 'Next →' })
-    if (!(await nextButton.isVisible().catch(() => false))) break
-    if (!(await nextButton.isEnabled())) break
-    await nextButton.click()
+    const next = nextButton(page)
+    if (!(await next.isVisible().catch(() => false))) break
+    if (!(await next.isEnabled())) break
+    await next.click()
     await page.waitForTimeout(300)
   }
 
