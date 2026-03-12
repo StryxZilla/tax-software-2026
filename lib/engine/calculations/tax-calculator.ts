@@ -278,14 +278,23 @@ export function calculateCapitalGains(transactions: Array<{
     }
   });
 
-  // Apply capital loss limit
+  // Apply capital loss limit (max $3,000 net loss against ordinary income)
   const totalGains = shortTermGains + longTermGains;
-  if (totalGains < 0) {
-    const lossUsed = Math.min(Math.abs(totalGains), CAPITAL_LOSS_LIMIT);
-    if (shortTermGains < 0) {
-      shortTermGains = Math.max(shortTermGains, -lossUsed);
-    } else {
-      longTermGains = Math.max(longTermGains, -lossUsed);
+  if (totalGains < -CAPITAL_LOSS_LIMIT) {
+    // Bring combined net loss up to exactly -$3,000 while preserving existing gain/loss signs.
+    // Reduce long-term loss first, then short-term loss if needed.
+    let adjustmentNeeded = -CAPITAL_LOSS_LIMIT - totalGains; // positive amount to add back
+
+    if (longTermGains < 0 && adjustmentNeeded > 0) {
+      const adjustment = Math.min(adjustmentNeeded, -longTermGains);
+      longTermGains += adjustment;
+      adjustmentNeeded -= adjustment;
+    }
+
+    if (shortTermGains < 0 && adjustmentNeeded > 0) {
+      const adjustment = Math.min(adjustmentNeeded, -shortTermGains);
+      shortTermGains += adjustment;
+      adjustmentNeeded -= adjustment;
     }
   }
 
