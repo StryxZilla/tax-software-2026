@@ -8,6 +8,7 @@ interface ZoeyGuideCardProps {
   title: string
   message: string
   className?: string
+  showImage?: boolean
 }
 
 const variantStyles: Record<ZoeyGuideVariant, { badge: string; border: string; bg: string; emoji: string; image: string }> = {
@@ -34,7 +35,7 @@ const variantStyles: Record<ZoeyGuideVariant, { badge: string; border: string; b
   },
 }
 
-export default function ZoeyGuideCard({ variant = 'tip', title, message, className = '' }: ZoeyGuideCardProps) {
+export default function ZoeyGuideCard({ variant = 'tip', title, message, className = '', showImage = true }: ZoeyGuideCardProps) {
   const style = variantStyles[variant]
 
   return (
@@ -51,11 +52,13 @@ export default function ZoeyGuideCard({ variant = 'tip', title, message, classNa
       aria-label="Zoey guidance"
     >
       <div className="flex items-start gap-3">
-        <ZoeyImage
-          src={style.image}
-          alt="Zoey the corgi guide"
-          className="w-16 h-16 md:w-[4.5rem] md:h-[4.5rem] shrink-0 rounded-xl border border-slate-200 bg-white object-cover object-top transition-transform duration-200 ease-in-out group-hover:scale-105"
-        />
+        {showImage && (
+          <ZoeyImage
+            src={style.image}
+            alt="Zoey the corgi guide"
+            className="w-16 h-16 md:w-[4.5rem] md:h-[4.5rem] shrink-0 rounded-xl border border-slate-200 bg-white object-cover object-top transition-transform duration-200 ease-in-out group-hover:scale-105"
+          />
+        )}
         <div className="min-w-0">
           <div className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold ${style.badge}`}>
             <span>{style.emoji}</span>

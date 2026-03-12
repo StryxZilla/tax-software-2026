@@ -11,6 +11,7 @@ interface ZoeyImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   src: string;
   alt: string;
   fallbackText?: string;
+  fallbackChain?: string[];
   'data-testid'?: string;
 }
 
@@ -35,9 +36,9 @@ function inferBasePath(): string {
   return '';
 }
 
-function buildCandidates(primarySrc: string): string[] {
+function buildCandidates(primarySrc: string, fallbackChain: readonly string[] = FALLBACK_CHAIN): string[] {
   const basePath = inferBasePath();
-  const raw = [primarySrc, ...FALLBACK_CHAIN];
+  const raw = [primarySrc, ...fallbackChain];
   const deduped: string[] = [];
   const seen = new Set<string>();
 
@@ -66,23 +67,24 @@ export default function ZoeyImage({
   src,
   alt,
   fallbackText = '🐕',
+  fallbackChain = [...FALLBACK_CHAIN],
   className = '',
   'data-testid': testId,
   ...rest
 }: ZoeyImageProps) {
   const imgRef = useRef<HTMLImageElement>(null);
-  const [candidates, setCandidates] = useState<string[]>([src, ...FALLBACK_CHAIN]);
+  const [candidates, setCandidates] = useState<string[]>([src, ...fallbackChain]);
   const [currentSrc, setCurrentSrc] = useState(src);
   const [failedSrcs, setFailedSrcs] = useState<Set<string>>(new Set());
   const [allFailed, setAllFailed] = useState(false);
 
   useEffect(() => {
-    const nextCandidates = buildCandidates(src);
+    const nextCandidates = buildCandidates(src, fallbackChain);
     setCandidates(nextCandidates);
     setCurrentSrc(nextCandidates[0] || src);
     setFailedSrcs(new Set());
     setAllFailed(false);
-  }, [src]);
+  }, [src, fallbackChain]);
 
   const advanceFallback = useCallback(
     (failedSrc: string) => {

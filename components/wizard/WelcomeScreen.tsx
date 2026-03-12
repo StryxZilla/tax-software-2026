@@ -164,6 +164,7 @@ export default function WelcomeScreen({ onStart, onResume, onStartOver, storageU
                 ? `Your draft is safe and sound — ${draft.completedCount} step${draft.completedCount !== 1 ? 's' : ''} already done. Let\u2019s finish this return!`
                 : '11 steps, save-as-you-go, and no chaos. Math is tough with paws, but Zoey never quits \u2014 and with AI backup, every section gets done right.'}
               className="w-full text-left"
+              showImage={false}
             />
           </div>
 
