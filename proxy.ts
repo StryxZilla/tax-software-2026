@@ -6,11 +6,15 @@ const { auth } = NextAuth(authConfig)
 
 export default auth((req) => {
   const isLoggedIn = !!req.auth
-  const isAuthPage = req.nextUrl.pathname.startsWith('/auth')
-  const isApiAuth = req.nextUrl.pathname.startsWith('/api/auth')
+  const { pathname } = req.nextUrl
+  const isAuthPage = pathname.startsWith('/auth')
+  const isApiAuth = pathname.startsWith('/api/auth')
+  const isStaticAsset = /\.[^/]+$/.test(pathname)
 
-  // Allow auth pages and NextAuth API routes through
-  if (isAuthPage || isApiAuth) {
+  // Allow auth pages, NextAuth API routes, and public static assets through.
+  // Without this, unauthenticated requests for /brand/*.png get redirected to
+  // /auth/login and image decoding fails in real browsers/tests.
+  if (isAuthPage || isApiAuth || isStaticAsset) {
     return NextResponse.next()
   }
 

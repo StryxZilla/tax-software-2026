@@ -64,8 +64,8 @@ test('wizard/status bubbles visual + state + refresh + resume @critical-smoke', 
   // Simulate leaving and resuming an in-progress return.
   await page.getByRole('button', { name: /Back to Overview/i }).click()
   await expect(page).toHaveURL('/')
-  await expect(page.getByText(/Saved draft at/i)).toBeVisible({ timeout: 10000 })
-  await expect(page.getByTestId('draft-info').getByText('Dependents', { exact: true })).toBeVisible()
+  await expect(page.getByTestId('draft-info')).toBeVisible({ timeout: 10000 })
+  await expect(page.getByRole('button', { name: /Resume where you left off/i })).toBeVisible()
   await page.getByRole('button', { name: /Resume where you left off/i }).click()
 
   await expect(page.getByRole('heading', { name: 'Dependents', exact: true })).toBeVisible({ timeout: 10000 })

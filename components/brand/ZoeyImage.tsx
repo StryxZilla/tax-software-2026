@@ -112,10 +112,12 @@ export default function ZoeyImage({
 
   useEffect(() => {
     const el = imgRef.current;
-    if (el && el.complete && el.naturalWidth === 0 && !allFailed) {
+    if (!el || allFailed) return;
+
+    if (el.complete && el.naturalWidth === 0 && !failedSrcs.has(currentSrc)) {
       advanceFallback(currentSrc);
     }
-  });
+  }, [advanceFallback, allFailed, currentSrc, failedSrcs]);
 
   if (allFailed) {
     return (

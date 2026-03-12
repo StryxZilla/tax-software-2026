@@ -49,14 +49,21 @@ test('wizard state persists after browser refresh @critical-smoke', async ({ pag
   const headingBeforeRefresh = await page.locator('h2').first().textContent()
   expect(headingBeforeRefresh).toBeTruthy()
 
-  // Ensure localStorage has been updated with the new step
-  const savedStep = await page.evaluate(() => localStorage.getItem('currentStep'))
+  // Ensure localStorage has been updated with the new step.
+  // Authenticated sessions now use user-scoped keys (e.g. currentStep:user:<id>).
+  const savedStep = await page.evaluate(() => {
+    const key = Object.keys(localStorage).find((k) => k.startsWith('currentStep'))
+    return key ? localStorage.getItem(key) : null
+  })
   expect(savedStep).toBeTruthy()
   expect(savedStep).not.toBe('welcome')
   expect(savedStep).not.toBe('personal-info')
 
-  // Verify form data is in localStorage
-  const savedData = await page.evaluate(() => localStorage.getItem('taxReturn2026'))
+  // Verify form data is in localStorage (user-scoped key)
+  const savedData = await page.evaluate(() => {
+    const key = Object.keys(localStorage).find((k) => k.startsWith('taxReturn2026'))
+    return key ? localStorage.getItem(key) : null
+  })
   expect(savedData).toBeTruthy()
   const parsed = JSON.parse(savedData!)
   expect(parsed.personalInfo.firstName).toBe('QA')
@@ -75,10 +82,16 @@ test('wizard state persists after browser refresh @critical-smoke', async ({ pag
   await expect(page.getByRole('heading', { name: headingBeforeRefresh!, exact: true })).toBeVisible({ timeout: 15000 })
 
   // Verify localStorage still has the form data after reload
-  const postReloadStep = await page.evaluate(() => localStorage.getItem('currentStep'))
+  const postReloadStep = await page.evaluate(() => {
+    const key = Object.keys(localStorage).find((k) => k.startsWith('currentStep'))
+    return key ? localStorage.getItem(key) : null
+  })
   expect(postReloadStep).toBe(savedStep)
 
-  const postReloadData = await page.evaluate(() => localStorage.getItem('taxReturn2026'))
+  const postReloadData = await page.evaluate(() => {
+    const key = Object.keys(localStorage).find((k) => k.startsWith('taxReturn2026'))
+    return key ? localStorage.getItem(key) : null
+  })
   expect(postReloadData).toBeTruthy()
   const postParsed = JSON.parse(postReloadData!)
   expect(postParsed.personalInfo.firstName).toBe('QA')

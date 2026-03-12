@@ -26,13 +26,16 @@ function LoginForm() {
         email,
         password,
         redirect: false,
+        callbackUrl,
       })
 
       if (result?.error) {
         setError('Invalid email or password. Please try again.')
       } else {
-        router.push(callbackUrl)
-        router.refresh()
+        // Keep navigation on the current origin (127.0.0.1 in Playwright).
+        // next-auth may return absolute localhost URLs, which would drop host-only
+        // session cookies and bounce users back to /auth/login.
+        window.location.assign(callbackUrl)
       }
     } catch {
       setError('Something went wrong. Please try again.')
@@ -47,7 +50,7 @@ function LoginForm() {
         {/* Logo */}
         <div className="text-center mb-8">
           <ZoeyImage
-            src="/brand/zoey-celebrate.png"
+            src="/brand/zoey-pointing.png"
             fallbackChain={[]}
             alt="Zoey mascot"
             className="w-16 h-16 md:w-[4.5rem] md:h-[4.5rem] mx-auto mb-3 rounded-xl border border-slate-200 bg-white object-cover object-top shadow-sm"

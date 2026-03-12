@@ -51,14 +51,15 @@ export default function RegisterPage() {
         email,
         password,
         redirect: false,
+        callbackUrl: '/',
       })
 
       if (result?.error) {
         // Registration succeeded but sign-in failed — redirect to login
         router.push('/auth/login')
       } else {
-        router.push('/')
-        router.refresh()
+        // Keep navigation on the current origin to preserve host-only cookies.
+        window.location.assign('/')
       }
     } catch {
       setError('Something went wrong. Please try again.')
@@ -73,7 +74,7 @@ export default function RegisterPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <ZoeyImage
-            src="/brand/zoey-celebrate.png"
+            src="/brand/zoey-pointing.png"
             fallbackChain={[]}
             alt="Zoey mascot"
             className="w-16 h-16 md:w-[4.5rem] md:h-[4.5rem] mx-auto mb-3 rounded-xl border border-slate-200 bg-white object-cover object-top shadow-sm"
