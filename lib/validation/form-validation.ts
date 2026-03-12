@@ -89,6 +89,11 @@ function isFiniteNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isFinite(value);
 }
 
+function normalizeSSN(value: string | undefined): string | undefined {
+  const normalized = value?.trim();
+  return normalized || undefined;
+}
+
 // Personal Info Validation
 export function validatePersonalInfo(info: PersonalInfo): ValidationError[] {
   const errors: ValidationError[] = [];
@@ -147,7 +152,7 @@ export function validatePersonalInfo(info: PersonalInfo): ValidationError[] {
       errors.push({ field: 'spouseSSN', message: 'Spouse SSN is required when filing jointly' });
     } else if (!validateSSN(info.spouseInfo.ssn)) {
       errors.push({ field: 'spouseSSN', message: 'Spouse SSN must be in format XXX-XX-XXXX' });
-    } else if (info.spouseInfo.ssn === info.ssn) {
+    } else if (normalizeSSN(info.spouseInfo.ssn) === normalizeSSN(info.ssn)) {
       errors.push({ field: 'spouseSSN', message: 'Spouse SSN must be different from your SSN' });
     }
     if (!isFiniteNumber(info.spouseInfo?.age)) {
@@ -336,12 +341,14 @@ function validateUniqueSSNs(taxReturn: TaxReturn): ValidationError[] {
   const seen = new Map<string, string>();
 
   const track = (ssn: string | undefined, field: string, label: string) => {
-    if (!ssn || !validateSSN(ssn)) return;
-    const existing = seen.get(ssn);
+    const normalizedSsn = normalizeSSN(ssn);
+    if (!normalizedSsn || !validateSSN(normalizedSsn)) return;
+
+    const existing = seen.get(normalizedSsn);
     if (existing) {
       errors.push({ field, message: `${label}: SSN duplicates ${existing}` });
     } else {
-      seen.set(ssn, label);
+      seen.set(normalizedSsn, label);
     }
   };
 

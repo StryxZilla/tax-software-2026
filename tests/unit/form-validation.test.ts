@@ -264,6 +264,42 @@ describe('form validation hardening', () => {
     expect(errors.some((e) => e.field === 'dependent-0-ssn')).toBe(true)
   })
 
+  it('rejects duplicate SSNs even when one side has surrounding whitespace', () => {
+    const taxReturn = createBaseTaxReturn()
+    taxReturn.personalInfo.ssn = '123-45-6789'
+    taxReturn.dependents = [
+      {
+        firstName: 'Kid',
+        lastName: 'Doe',
+        ssn: ' 123-45-6789 ',
+        relationshipToTaxpayer: 'Son',
+        birthDate: '2018-05-01',
+        isQualifyingChildForCTC: true,
+        monthsLivedWithTaxpayer: 12,
+      },
+    ]
+
+    const errors = validateTaxReturn(taxReturn)
+    expect(errors.some((e) => e.field === 'dependent-0-ssn')).toBe(true)
+  })
+
+  it('rejects spouse SSN matching taxpayer SSN after trimming whitespace', () => {
+    const info: PersonalInfo = {
+      ...createBasePersonalInfo(),
+      filingStatus: 'Married Filing Jointly',
+      spouseInfo: {
+        firstName: 'John',
+        lastName: 'Doe',
+        ssn: ' 123-45-6789 ',
+        age: 34,
+        isBlind: false,
+      },
+    }
+
+    const errors = validatePersonalInfo(info)
+    expect(errors.some((e) => e.field === 'spouseSSN' && e.message.includes('different'))).toBe(true)
+  })
+
   it('rejects impossible capital gains dates', () => {
     const errors = validateCapitalGain(
       {
