@@ -4,7 +4,7 @@
  */
 import React from 'react'
 import { describe, it, expect, vi } from 'vitest'
-import { screen } from '@testing-library/react'
+import { screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import PersonalInfoForm from '../../components/forms/PersonalInfoForm'
 import { VALID_PERSONAL_INFO } from './helpers'
@@ -105,6 +105,12 @@ describe('PersonalInfoForm — user input', () => {
     )
     expect(onChange).toHaveBeenCalledWith({ filingStatus: 'Married Filing Jointly' })
   })
+
+  it('normalizes legacy leading-zero primary age display values', () => {
+    renderForm({ ...VALID_PERSONAL_INFO, age: '03' as unknown as number })
+
+    expect(screen.getByPlaceholderText('Your age')).toHaveValue(3)
+  })
 })
 
 describe('PersonalInfoForm — spouse section', () => {
@@ -118,6 +124,69 @@ describe('PersonalInfoForm — spouse section', () => {
     renderForm(married)
     expect(screen.getByText('Spouse Information')).toBeInTheDocument()
     expect(screen.getByPlaceholderText("Enter spouse's first name")).toBeInTheDocument()
+  })
+
+  it('keeps spouse age input empty when no spouse age is set', () => {
+    const married = {
+      ...VALID_PERSONAL_INFO,
+      filingStatus: 'Married Filing Jointly' as const,
+      spouseInfo: {
+        firstName: 'Jamie',
+        lastName: 'Doe',
+        ssn: '987-65-4321',
+        age: 0,
+        isBlind: false,
+      },
+    }
+    renderForm(married)
+
+    expect(screen.getByPlaceholderText("Spouse's age")).toHaveValue(null)
+  })
+
+  it('normalizes legacy leading-zero spouse age display values', () => {
+    const married = {
+      ...VALID_PERSONAL_INFO,
+      filingStatus: 'Married Filing Jointly' as const,
+      spouseInfo: {
+        firstName: 'Jamie',
+        lastName: 'Doe',
+        ssn: '987-65-4321',
+        age: '02' as unknown as number,
+        isBlind: false,
+      },
+    }
+    renderForm(married)
+
+    expect(screen.getByPlaceholderText("Spouse's age")).toHaveValue(2)
+  })
+
+  it('parses leading-zero spouse age input into normalized number', () => {
+    const onChange = vi.fn()
+    const married = {
+      ...VALID_PERSONAL_INFO,
+      filingStatus: 'Married Filing Jointly' as const,
+      spouseInfo: {
+        firstName: 'Jamie',
+        lastName: 'Doe',
+        ssn: '987-65-4321',
+        age: 0,
+        isBlind: false,
+      },
+    }
+    renderForm(married, onChange)
+
+    const spouseAgeInput = screen.getByPlaceholderText("Spouse's age")
+    fireEvent.change(spouseAgeInput, { target: { value: '02' } })
+
+    expect(onChange).toHaveBeenCalledWith({
+      spouseInfo: {
+        firstName: 'Jamie',
+        lastName: 'Doe',
+        ssn: '987-65-4321',
+        age: 2,
+        isBlind: false,
+      },
+    })
   })
 })
 

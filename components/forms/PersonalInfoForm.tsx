@@ -39,6 +39,18 @@ export default function PersonalInfoForm({ value, onChange, onValidationChange }
     return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5)}`;
   };
 
+  const parseAgeInput = (rawValue: string): number => {
+    const parsed = Number.parseInt(rawValue, 10);
+    if (!Number.isFinite(parsed)) return 0;
+    return Math.max(0, Math.min(120, parsed));
+  };
+
+  const formatAgeDisplay = (age: unknown): string => {
+    const parsed = typeof age === 'number' ? age : Number.parseInt(String(age ?? ''), 10);
+    if (!Number.isFinite(parsed) || parsed <= 0) return '';
+    return String(Math.max(0, Math.min(120, parsed)));
+  };
+
   const handleChange = (field: keyof PersonalInfo, newValue: any) => {
     const nextValue = field === 'ssn' && typeof newValue === 'string'
       ? formatSSNInput(newValue)
@@ -176,8 +188,8 @@ export default function PersonalInfoForm({ value, onChange, onValidationChange }
             </label>
             <input
               type="number"
-              value={value.age}
-              onChange={(e) => handleChange('age', parseInt(e.target.value) || 0)}
+              value={formatAgeDisplay(value.age)}
+              onChange={(e) => handleChange('age', parseAgeInput(e.target.value))}
               onBlur={() => validation.touchField('age')}
               placeholder="Your age"
               className={getInputClassName('age')}
@@ -349,10 +361,10 @@ export default function PersonalInfoForm({ value, onChange, onValidationChange }
               </label>
               <input
                 type="number"
-                value={value.spouseInfo?.age || 0}
-                onChange={(e) => handleChange('spouseInfo', { 
+                value={formatAgeDisplay(value.spouseInfo?.age)}
+                onChange={(e) => handleChange('spouseInfo', {
                   ...value.spouseInfo,
-                  age: parseInt(e.target.value) || 0
+                  age: parseAgeInput(e.target.value)
                 })}
                 onBlur={() => validation.touchField('spouseAge')}
                 placeholder="Spouse's age"
