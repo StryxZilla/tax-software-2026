@@ -25,6 +25,7 @@ import SaveStatusIndicator from '../components/common/SaveStatusIndicator'
 import ZoeyGuideCard from '../components/brand/ZoeyGuideCard'
 import ZoeyImage from '../components/brand/ZoeyImage'
 import { WizardStep } from '../types/tax-types'
+import { getWizardStepFromStorage, hasGuestLocalDraft } from '../lib/storage/tax-return-storage'
 
 const STEP_ORDER: WizardStep[] = [
   'personal-info',
@@ -493,7 +494,7 @@ function WizardStepContent() {
 function ImportBanner() {
   const { importFromLocalStorage } = useTaxReturn()
   const [show] = useState(() => {
-    const hasLocalData = !!localStorage.getItem('taxReturn2026')
+    const hasLocalData = hasGuestLocalDraft()
     const alreadyAsked = !!sessionStorage.getItem('importAsked')
     return hasLocalData && !alreadyAsked
   })
@@ -645,6 +646,7 @@ function AppShell() {
 
 function MainContent() {
   const { currentStep, setCurrentStep, completedSteps, skippedSteps, resetTaxReturn } = useTaxReturn()
+  const user = useAuthUser()
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
@@ -655,14 +657,13 @@ function MainContent() {
   if (currentStep === 'welcome') {
     return (
       <WelcomeScreen
+        storageUserId={user?.id}
         onStart={() => setCurrentStep('personal-info')}
         onResume={() => {
           // Resume to the saved step (already loaded into currentStep from localStorage/DB).
           // The context loads savedStep on mount, but since we're on 'welcome' the user
           // explicitly navigated here. Read the persisted step directly.
-          const savedStep = localStorage.getItem('currentStep')
-          const resumeStep = localStorage.getItem('resumeStep')
-          const stepToResume = savedStep && savedStep !== 'welcome' ? savedStep : resumeStep
+          const stepToResume = getWizardStepFromStorage(user?.id)
           if (stepToResume && stepToResume !== 'welcome') {
             setCurrentStep(stepToResume as WizardStep)
           } else {

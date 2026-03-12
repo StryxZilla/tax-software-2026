@@ -11,6 +11,7 @@ import {
   VALID_DEPENDENT,
   EMPTY_TAX_RETURN,
 } from './helpers'
+import { getTaxReturnStorageKeys } from '../../lib/storage/tax-return-storage'
 
 describe('Save/Resume — detectSavedDraft integration', () => {
   beforeEach(() => {
@@ -45,6 +46,21 @@ describe('Save/Resume — detectSavedDraft integration', () => {
     expect(draft!.currentStep).toBe('dependents')
     expect(draft!.completedCount).toBe(1)
     expect(draft!.hasData).toBe(true)
+  })
+
+  it('uses user-scoped keys when a user id is provided', () => {
+    const keys = getTaxReturnStorageKeys('user-123')
+    localStorage.setItem(keys.taxReturn, JSON.stringify({ personalInfo: { ...VALID_PERSONAL_INFO } }))
+    localStorage.setItem(keys.currentStep, 'dependents')
+    localStorage.setItem(keys.completedSteps, JSON.stringify(['personal-info']))
+
+    localStorage.setItem('taxReturn2026', JSON.stringify({ personalInfo: { firstName: 'Wrong' } }))
+    localStorage.setItem('currentStep', 'review')
+
+    const draft = detectSavedDraft('user-123')
+    expect(draft).not.toBeNull()
+    expect(draft!.currentStep).toBe('dependents')
+    expect(draft!.completedCount).toBe(1)
   })
 
   it('detects draft with W-2 income even without name', () => {

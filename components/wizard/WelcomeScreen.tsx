@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { ChevronRight, RotateCcw, Play } from 'lucide-react';
 import ZoeyGuideCard from '../brand/ZoeyGuideCard';
 import ZoeyImage from '../brand/ZoeyImage';
+import { getTaxReturnStorageKeys } from '../../lib/storage/tax-return-storage';
 
 const WIZARD_STEPS = [
   { number: 1, label: 'Personal Information', description: 'Name, address, SSN, filing status' },
@@ -75,12 +76,13 @@ export interface SavedDraftInfo {
 }
 
 /** Check localStorage for a saved draft without needing React context */
-export function detectSavedDraft(): SavedDraftInfo | null {
+export function detectSavedDraft(userId?: string | null): SavedDraftInfo | null {
   try {
-    const savedData = localStorage.getItem('taxReturn2026');
-    const savedStep = localStorage.getItem('currentStep');
-    const resumeStep = localStorage.getItem('resumeStep');
-    const savedCompleted = localStorage.getItem('completedSteps');
+    const keys = getTaxReturnStorageKeys(userId);
+    const savedData = localStorage.getItem(keys.taxReturn);
+    const savedStep = localStorage.getItem(keys.currentStep);
+    const resumeStep = localStorage.getItem(keys.resumeStep);
+    const savedCompleted = localStorage.getItem(keys.completedSteps);
 
     const effectiveStep = savedStep && savedStep !== 'welcome' ? savedStep : resumeStep;
     if (!savedData || !effectiveStep || effectiveStep === 'welcome') return null;
@@ -118,14 +120,15 @@ interface WelcomeScreenProps {
   onStart: () => void;
   onResume?: () => void;
   onStartOver?: () => void;
+  storageUserId?: string | null;
 }
 
-export default function WelcomeScreen({ onStart, onResume, onStartOver }: WelcomeScreenProps) {
+export default function WelcomeScreen({ onStart, onResume, onStartOver, storageUserId }: WelcomeScreenProps) {
   const [draft, setDraft] = useState<SavedDraftInfo | null>(null);
 
   useEffect(() => {
-    setDraft(detectSavedDraft());
-  }, []);
+    setDraft(detectSavedDraft(storageUserId));
+  }, [storageUserId]);
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-8">

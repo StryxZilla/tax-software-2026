@@ -1,9 +1,10 @@
 'use client'
 
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react'
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react'
 import { useSession } from 'next-auth/react'
 import { TaxReturn, WizardStep, TaxCalculation } from '../../types/tax-types'
 import { calculateTaxReturn } from '../engine/calculations/tax-calculator'
+import { getTaxReturnStorageKeys } from '../storage/tax-return-storage'
 
 interface TaxReturnContextType {
   taxReturn: TaxReturn
@@ -104,6 +105,8 @@ export function TaxReturnProvider({ children }: { children: ReactNode }) {
   const [saveTimeout, setSaveTimeout] = useState<ReturnType<typeof setTimeout> | null>(null)
 
   const isAuthenticated = status === 'authenticated'
+  const currentUserId = session?.user?.id ?? null
+  const storageKeys = useMemo(() => getTaxReturnStorageKeys(currentUserId), [currentUserId])
 
   // Load data on auth state change
   useEffect(() => {
@@ -113,7 +116,19 @@ export function TaxReturnProvider({ children }: { children: ReactNode }) {
       loadFromLocalStorage()
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status])
+  }, [status, dbLoaded, storageKeys])
+
+  // Ensure a new login identity always rehydrates from that user's scope.
+  useEffect(() => {
+    if (status === 'authenticated') {
+      setDbLoaded(false)
+      setTaxReturn(initialTaxReturn)
+      setCurrentStep('welcome')
+      setCompletedSteps(new Set())
+      setSkippedSteps(new Set())
+      setTaxCalculation(null)
+    }
+  }, [status, currentUserId])
 
   // Auto-save: localStorage always, DB when authenticated (debounced)
   useEffect(() => {
@@ -150,25 +165,25 @@ export function TaxReturnProvider({ children }: { children: ReactNode }) {
       } else {
         // DB has no data yet — fall back to localStorage (covers the case
         // where a debounced DB save hadn't completed before refresh).
-        const localData = localStorage.getItem('taxReturn2026')
+        const localData = localStorage.getItem(storageKeys.taxReturn)
         if (localData) {
           const parsed = JSON.parse(localData)
           setTaxReturn(parsed)
         }
       }
       // Restore wizard step and completed steps from localStorage (not stored in DB)
-      const savedStep = localStorage.getItem('currentStep')
-      const resumeStep = localStorage.getItem('resumeStep')
+      const savedStep = localStorage.getItem(storageKeys.currentStep)
+      const resumeStep = localStorage.getItem(storageKeys.resumeStep)
       if (savedStep) {
         setCurrentStep(savedStep as WizardStep)
       } else if (resumeStep) {
         setCurrentStep(resumeStep as WizardStep)
       }
-      const savedCompleted = localStorage.getItem('completedSteps')
+      const savedCompleted = localStorage.getItem(storageKeys.completedSteps)
       if (savedCompleted) {
         setCompletedSteps(new Set(JSON.parse(savedCompleted)))
       }
-      const savedSkipped = localStorage.getItem('skippedSteps')
+      const savedSkipped = localStorage.getItem(storageKeys.skippedSteps)
       if (savedSkipped) {
         setSkippedSteps(new Set(JSON.parse(savedSkipped)))
       }
@@ -279,13 +294,13 @@ export function TaxReturnProvider({ children }: { children: ReactNode }) {
 
   const saveToLocalStorage = () => {
     try {
-      localStorage.setItem('taxReturn2026', JSON.stringify(taxReturn))
-      localStorage.setItem('currentStep', currentStep)
+      localStorage.setItem(storageKeys.taxReturn, JSON.stringify(taxReturn))
+      localStorage.setItem(storageKeys.currentStep, currentStep)
       if (currentStep !== 'welcome') {
-        localStorage.setItem('resumeStep', currentStep)
+        localStorage.setItem(storageKeys.resumeStep, currentStep)
       }
-      localStorage.setItem('completedSteps', JSON.stringify([...completedSteps]))
-      localStorage.setItem('skippedSteps', JSON.stringify([...skippedSteps]))
+      localStorage.setItem(storageKeys.completedSteps, JSON.stringify([...completedSteps]))
+      localStorage.setItem(storageKeys.skippedSteps, JSON.stringify([...skippedSteps]))
       if (!isAuthenticated) {
         setLastSaved(new Date())
       }
@@ -298,11 +313,11 @@ export function TaxReturnProvider({ children }: { children: ReactNode }) {
 
   const loadFromLocalStorage = () => {
     try {
-      const saved = localStorage.getItem('taxReturn2026')
-      const savedStep = localStorage.getItem('currentStep')
-      const resumeStep = localStorage.getItem('resumeStep')
-      const savedCompleted = localStorage.getItem('completedSteps')
-      const savedSkipped = localStorage.getItem('skippedSteps')
+      const saved = localStorage.getItem(storageKeys.taxReturn)
+      const savedStep = localStorage.getItem(storageKeys.currentStep)
+      const resumeStep = localStorage.getItem(storageKeys.resumeStep)
+      const savedCompleted = localStorage.getItem(storageKeys.completedSteps)
+      const savedSkipped = localStorage.getItem(storageKeys.skippedSteps)
       if (saved) {
         setTaxReturn(JSON.parse(saved))
       }
@@ -327,7 +342,7 @@ export function TaxReturnProvider({ children }: { children: ReactNode }) {
   // Import localStorage data into DB (called after login if user wants to migrate)
   const importFromLocalStorage = async () => {
     try {
-      const saved = localStorage.getItem('taxReturn2026')
+      const saved = localStorage.getItem(storageKeys.taxReturn)
       if (!saved) return
       const data = JSON.parse(saved)
       await fetch('/api/tax-return', {
@@ -353,11 +368,11 @@ export function TaxReturnProvider({ children }: { children: ReactNode }) {
     setCompletedSteps(new Set())
     setSkippedSteps(new Set())
     setTaxCalculation(null)
-    localStorage.removeItem('taxReturn2026')
-    localStorage.removeItem('currentStep')
-    localStorage.removeItem('completedSteps')
-    localStorage.removeItem('skippedSteps')
-    localStorage.removeItem('resumeStep')
+    localStorage.removeItem(storageKeys.taxReturn)
+    localStorage.removeItem(storageKeys.currentStep)
+    localStorage.removeItem(storageKeys.completedSteps)
+    localStorage.removeItem(storageKeys.skippedSteps)
+    localStorage.removeItem(storageKeys.resumeStep)
     setLastSaved(null)
 
     // Clear from DB too if authenticated

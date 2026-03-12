@@ -9,9 +9,11 @@
 import '@testing-library/jest-dom/vitest'
 import { vi, beforeEach } from 'vitest'
 
+export const useSessionMock = vi.fn(() => ({ data: null, status: 'unauthenticated' as const }))
+
 // ---------- next-auth/react mock ----------
 vi.mock('next-auth/react', () => ({
-  useSession: vi.fn(() => ({ data: null, status: 'unauthenticated' as const })),
+  useSession: useSessionMock,
   signOut: vi.fn(),
   SessionProvider: ({ children }: { children: React.ReactNode }) => children,
 }))
