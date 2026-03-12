@@ -16,7 +16,7 @@ const variantStyles: Record<ZoeyGuideVariant, { badge: string; border: string; b
     border: 'border-sky-200',
     bg: 'from-sky-50 to-white',
     emoji: '💡',
-    image: '/brand/zoey-neutral.png',
+    image: '/brand/zoey-pointing.png',
   },
   warning: {
     badge: 'bg-amber-100 text-amber-800 border-amber-200',
@@ -54,7 +54,7 @@ export default function ZoeyGuideCard({ variant = 'tip', title, message, classNa
         <ZoeyImage
           src={style.image}
           alt="Zoey the corgi guide"
-          className="w-[3.25rem] h-[3.25rem] md:w-14 md:h-14 shrink-0 rounded-xl border border-slate-200 bg-white object-contain object-center p-1 transition-transform duration-200 ease-in-out group-hover:scale-105"
+          className="w-16 h-16 md:w-[4.5rem] md:h-[4.5rem] shrink-0 rounded-xl border border-slate-200 bg-white object-cover object-top transition-transform duration-200 ease-in-out group-hover:scale-105"
         />
         <div className="min-w-0">
           <div className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-semibold ${style.badge}`}>

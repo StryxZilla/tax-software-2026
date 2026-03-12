@@ -72,11 +72,6 @@ export default function RegisterPage() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <ZoeyImage
-            src="/brand/zoey-hero-wide.png"
-            alt="Zoey mascot"
-            className="h-24 w-40 mx-auto mb-3 rounded-2xl border border-slate-200 bg-white object-cover object-center shadow-sm"
-          />
           <h1 className="text-4xl font-extrabold text-slate-900">Zoey&apos;s Tax Advisory</h1>
           <p className="text-slate-500 mt-1 font-medium">2026 filing workspace</p>
         </div>
