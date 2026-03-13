@@ -26,7 +26,7 @@ export default function RetirementForm({
   onUpdate,
   onValidationChange,
 }: RetirementFormProps) {
-  const [showMegaBackdoorHelp, setShowMegaBackdoorHelp] = useState(false);
+  const [showBackdoorRothHelp, setShowBackdoorRothHelp] = useState(false);
   const analysis = useMemo(() => {
     if (!form8606) {
       return { warnings: [] as string[], recommendations: [] as string[] };
@@ -92,13 +92,21 @@ export default function RetirementForm({
   };
 
   const handleForm8606Change = (updates: Partial<Form8606Data>) => {
+    const current: Form8606Data = {
+      nondeductibleContributions: form8606?.nondeductibleContributions ?? 0,
+      priorYearBasis: form8606?.priorYearBasis ?? 0,
+      conversionsToRoth: form8606?.conversionsToRoth ?? 0,
+      distributionsFromTraditionalIRA: form8606?.distributionsFromTraditionalIRA ?? 0,
+      endOfYearTraditionalIRABalance: form8606?.endOfYearTraditionalIRABalance ?? 0,
+    };
+
     onUpdate({
       traditionalIRA,
       rothIRA,
       form8606: {
-        ...form8606,
+        ...current,
         ...updates,
-      } as Form8606Data,
+      },
     });
   };
 
@@ -112,10 +120,10 @@ export default function RetirementForm({
         </div>
         <button
           type="button"
-          onClick={() => setShowMegaBackdoorHelp(!showMegaBackdoorHelp)}
+          onClick={() => setShowBackdoorRothHelp(!showBackdoorRothHelp)}
           className="flex items-center space-x-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-100 transition-all"
         >
-          {showMegaBackdoorHelp ? 'Hide Help' : '💡 Mega Backdoor Roth Help'}
+          {showBackdoorRothHelp ? 'Hide Help' : '💡 Backdoor Roth Help'}
         </button>
       </div>
 
@@ -138,9 +146,9 @@ export default function RetirementForm({
         </div>
       )}
 
-      {showMegaBackdoorHelp && (
+      {showBackdoorRothHelp && (
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
-          <h3 className="text-lg font-semibold text-blue-900 mb-4">💡 Mega Backdoor Roth Strategy</h3>
+          <h3 className="text-lg font-semibold text-blue-900 mb-4">💡 Backdoor Roth IRA Strategy</h3>
           <div className="space-y-3 text-sm text-blue-800">
             <p>The backdoor Roth strategy lets you contribute to a Roth IRA even if your income exceeds the direct contribution limits. Here's how it works:</p>
             <ol className="list-decimal list-inside space-y-2 ml-2">

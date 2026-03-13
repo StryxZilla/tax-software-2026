@@ -32,26 +32,40 @@ export interface Form8606Calculation {
  * 3. Track basis to avoid double taxation
  */
 export function calculateForm8606(data: Form8606Data): Form8606Calculation {
+  const asNonNegativeFinite = (value: unknown): number => {
+    if (typeof value !== 'number' || !Number.isFinite(value)) return 0;
+    return Math.max(0, value);
+  };
+
+  // Normalize potentially partial/legacy persisted data so calculations never produce NaN.
+  const normalized = {
+    nondeductibleContributions: asNonNegativeFinite(data.nondeductibleContributions),
+    priorYearBasis: asNonNegativeFinite(data.priorYearBasis),
+    conversionsToRoth: asNonNegativeFinite(data.conversionsToRoth),
+    distributionsFromTraditionalIRA: asNonNegativeFinite((data as Partial<Form8606Data>).distributionsFromTraditionalIRA),
+    endOfYearTraditionalIRABalance: asNonNegativeFinite(data.endOfYearTraditionalIRABalance),
+  };
+
   // Line 1: Nondeductible contributions for current year
-  const line1 = data.nondeductibleContributions;
+  const line1 = normalized.nondeductibleContributions;
 
   // Line 2: Total basis in traditional IRAs from prior years
-  const line2 = data.priorYearBasis;
+  const line2 = normalized.priorYearBasis;
 
   // Line 3: Add lines 1 and 2
   const line3 = line1 + line2;
 
   // Line 4: Enter conversions to Roth IRA
-  const line4 = data.conversionsToRoth;
+  const line4 = normalized.conversionsToRoth;
 
   // Line 5: Enter distributions from traditional IRAs (excluding conversions)
-  const line5 = data.distributionsFromTraditionalIRA;
+  const line5 = normalized.distributionsFromTraditionalIRA;
 
   // Line 6: Add lines 4 and 5
   const line6 = line4 + line5;
 
   // Line 7: Enter value of all traditional IRAs as of December 31 of current year
-  const line7 = data.endOfYearTraditionalIRABalance;
+  const line7 = normalized.endOfYearTraditionalIRABalance;
 
   // Line 8: Add lines 6 and 7 (IRS Form 8606 instruction: "Add lines 6 and 7")
   // Do NOT add line1 here — the current-year contribution is already reflected in
@@ -61,7 +75,7 @@ export function calculateForm8606(data: Form8606Data): Form8606Calculation {
 
   // Line 9: Divide line 3 by line 8 (basis percentage using pro-rata rule)
   // This is the percentage of your IRA that is after-tax (nontaxable)
-  const line9 = line8 > 0 ? line3 / line8 : 0;
+  const line9 = line8 > 0 ? Math.min(1, line3 / line8) : 0;
 
   // Part II: Conversions from Traditional to Roth IRA
 
