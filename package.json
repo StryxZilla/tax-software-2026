@@ -41,6 +41,7 @@
     "next": "16.1.6",
     "next-auth": "^5.0.0-beta.30",
     "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^4.10.38",
     "prisma": "^7.4.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
