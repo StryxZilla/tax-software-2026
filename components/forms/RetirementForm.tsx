@@ -262,8 +262,11 @@ export default function RetirementForm({
               <input
                 type="number"
                   step="0.01"
-                value={form8606?.nondeductibleContributions || 0}
-                onChange={(e) => handleForm8606Change({ nondeductibleContributions: parseFloat(e.target.value) || 0 })}
+                value={(form8606?.nondeductibleContributions ?? 0) === 0 ? '' : form8606?.nondeductibleContributions}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  handleForm8606Change({ nondeductibleContributions: raw === '' ? 0 : parseFloat(raw) || 0 });
+                }}
                 onBlur={() => touchField('retirement-8606-nondeductible')}
                 min="0"
                 className={`pl-8 ${getInputClassName('retirement-8606-nondeductible')}`}

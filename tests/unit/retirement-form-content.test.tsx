@@ -39,4 +39,21 @@ describe('RetirementForm help content', () => {
     expect(html).not.toContain('NaN')
     expect(html).toContain('$7,000')
   })
+
+  it('does not force a leading 0 in current-year nondeductible contribution input', () => {
+    const html = renderToString(
+      <RetirementForm
+        onUpdate={() => {}}
+        form8606={{
+          nondeductibleContributions: 0,
+          priorYearBasis: 0,
+          conversionsToRoth: 0,
+          distributionsFromTraditionalIRA: 0,
+          endOfYearTraditionalIRABalance: 0,
+        }}
+      />,
+    )
+
+    expect(html).toMatch(/Nondeductible Contributions — Current Year[\s\S]*value=""/)
+  })
 })
