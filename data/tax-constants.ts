@@ -306,3 +306,188 @@ export const QBI_DEDUCTION_2025 = {
     marriedFilingJointly: 100000,
   },
 };
+
+// Child and Dependent Care Credit for 2025 (Form 2441)
+export const CHILD_AND_DEPENDENT_CARE_CREDIT_2025 = {
+  // Credit percentage based on AGI
+  creditPercentages: [
+    { maxAGI: 15000, rate: 0.35 },
+    { maxAGI: 17000, rate: 0.34 },
+    { maxAGI: 19000, rate: 0.33 },
+    { maxAGI: 21000, rate: 0.32 },
+    { maxAGI: 23000, rate: 0.31 },
+    { maxAGI: 25000, rate: 0.30 },
+    { maxAGI: 27000, rate: 0.29 },
+    { maxAGI: 29000, rate: 0.28 },
+    { maxAGI: 31000, rate: 0.27 },
+    { maxAGI: 33000, rate: 0.26 },
+    { maxAGI: 35000, rate: 0.25 },
+    { maxAGI: 37000, rate: 0.24 },
+    { maxAGI: 39000, rate: 0.23 },
+    { maxAGI: 41000, rate: 0.22 },
+    { maxAGI: 43000, rate: 0.21 },
+    { maxAGI: 45000, rate: 0.20 },
+    { maxAGI: 47000, rate: 0.19 },
+    { maxAGI: 49000, rate: 0.18 },
+    { maxAGI: 51000, rate: 0.17 },
+    { maxAGI: 53000, rate: 0.16 },
+    { maxAGI: 55000, rate: 0.15 },
+    { maxAGI: 57000, rate: 0.14 },
+    { maxAGI: 59000, rate: 0.13 },
+    { maxAGI: 61000, rate: 0.12 },
+    { maxAGI: 63000, rate: 0.11 },
+    { maxAGI: 65000, rate: 0.10 },
+    { maxAGI: 67000, rate: 0.09 },
+    { maxAGI: 69000, rate: 0.08 },
+    { maxAGI: 71000, rate: 0.07 },
+    { maxAGI: 73000, rate: 0.06 },
+    { maxAGI: 75000, rate: 0.05 },
+    { maxAGI: Infinity, rate: 0.05 }, // Floor at 5%
+  ],
+  // Maximum eligible care expenses
+  maxCareExpenses: {
+    oneQualifyingPerson: 3000,
+    twoOrMoreQualifyingPersons: 6000,
+  },
+  // Earned income limit (can't claim more than your earned income)
+  earnedIncomeLimit: true,
+};
+
+// Electric Vehicle Credit for 2025 (Clean Vehicle Credit - Form 8936)
+export const EV_CREDIT_2025 = {
+  // New clean vehicles
+  newVehicle: {
+    maxCredit: 7500,
+    minBatteryCapacity: 7, // kWh for base credit
+    additionalKwhFor7500: 13, // Need at least 7 + 13 = 20 kWh for max credit
+    batteryCapacityCredit: 417, // Per kWh above threshold (max $7,500)
+  },
+  // Used clean vehicles (added by Inflation Reduction Act)
+  usedVehicle: {
+    maxCredit: 4000,
+    maxVehiclePrice: 25000,
+    minBatteryCapacity: 7,
+  },
+  // Income phase-out (starts reducing credit at these levels)
+  incomePhaseout: {
+    single: {
+      start: 150000,
+      end: 180000,
+    },
+    marriedFilingJointly: {
+      start: 300000,
+      end: 360000,
+    },
+    headOfHousehold: {
+      start: 225000,
+      end: 270000,
+    },
+  },
+  // Qualifying manufacturers (must meet IRS requirements)
+  // This list changes, but here are major ones as of 2025
+  qualifyingManufacturers: [
+    'Tesla',
+    'Rivian',
+    'Ford',
+    'Chevrolet',
+    'GMC',
+    'Cadillac',
+    'Jeep',
+    'Hyundai',
+    'Kia',
+    'BMW',
+    'Mercedes-Benz',
+    'Volkswagen',
+    'Audi',
+    'Volvo',
+    'Porsche',
+    'Toyota',
+    'Honda',
+    'Nissan',
+    'Lexus',
+    'Acura',
+    'Mazda',
+    'Subaru',
+  ],
+};
+
+// Residential Energy Credit for 2025 (Form 3468)
+// Note: The energy efficient home improvements credit
+export const RESIDENTIAL_ENERGY_CREDIT_2025 = {
+  improvements: {
+    // Solar electric (30% through 2032, then phases down)
+    solarElectric: {
+      rate: 0.30,
+      maxCredit: Infinity,
+      throughYear: 2032,
+      description: 'Solar electric property (solar panels)',
+    },
+    // Solar water heating (30% through 2032)
+    solarWaterHeating: {
+      rate: 0.30,
+      maxCredit: Infinity,
+      throughYear: 2032,
+      description: 'Solar water heating property',
+    },
+    // Wind energy (30% through 2032)
+    windEnergy: {
+      rate: 0.30,
+      maxCredit: Infinity,
+      throughYear: 2032,
+      description: 'Small wind energy property',
+    },
+    // Geothermal heat pumps (30% through 2032)
+    geothermalHeatPump: {
+      rate: 0.30,
+      maxCredit: Infinity,
+      throughYear: 2032,
+      description: 'Geothermal heat pump property',
+    },
+    // Fuel cells (30% through 2032, with per-watt limits)
+    fuelCell: {
+      rate: 0.30,
+      maxCreditPerHalfWatt: 1000, // $1,000 per 0.5 kW
+      description: 'Fuel cell property',
+    },
+    // Heat pumps - NEW category (30% for 2022-2032)
+    heatPump: {
+      rate: 0.30,
+      maxCredit: 2000,
+      throughYear: 2032,
+      description: 'Air source heat pump or heat pump water heater',
+    },
+    // Biomass stoves (30% for 2022-2032)
+    biomassStove: {
+      rate: 0.30,
+      maxCredit: 2000,
+      throughYear: 2032,
+      description: 'Biomass stove',
+    },
+    // Windows, doors, skylights (10%)
+    windowsDoors: {
+      rate: 0.10,
+      maxCredit: 500, // $500 per window, $250 per door, max $500 total
+      description: 'Windows, doors, skylights',
+    },
+    // Roofing (10%)
+    roofing: {
+      rate: 0.10,
+      maxCredit: 500,
+      description: 'Metal and asphalt roofs with appropriate pigmented coatings',
+    },
+    // Insulation (10%)
+    insulation: {
+      rate: 0.10,
+      maxCredit: 500,
+      description: 'Insulation materials',
+    },
+    // Air sealing and duct sealing (10%)
+    sealing: {
+      rate: 0.10,
+      maxCredit: 500,
+      description: 'Air sealing and duct sealing',
+    },
+  },
+  // Annual credit cap (starts 2023)
+  annualCap: 12000, // For improvements made after 2022
+};

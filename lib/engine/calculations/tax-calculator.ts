@@ -9,11 +9,15 @@ import {
   AMT_2025,
   CHILD_TAX_CREDIT_2025,
   EDUCATION_CREDITS_2025,
+  EITC_2025,
   SALT_CAP_2025,
   MEDICAL_EXPENSE_AGI_THRESHOLD,
   CAPITAL_LOSS_LIMIT,
   MEALS_DEDUCTION_RATE,
   SAVERS_CREDIT_2025,
+  CHILD_AND_DEPENDENT_CARE_CREDIT_2025,
+  EV_CREDIT_2025,
+  RESIDENTIAL_ENERGY_CREDIT_2025,
 } from '../../../data/tax-constants';
 
 // Box 12 codes that are taxable and should be added to wages
@@ -457,13 +461,19 @@ export function calculateSaversCredit(taxReturn: TaxReturn, agi: number): number
   // Must be 18+, not a student, not claimed as dependent (simplified: use age >= 18)
   if (taxReturn.personalInfo.age < 18) return 0;
 
-  // Get eligible contributions (Traditional IRA + Roth IRA)
+  // Get eligible contributions (Traditional IRA + Roth IRA + 401(k))
+  // Note: Only count deductible contributions for Traditional IRA (eligible for saver's credit)
   let contributions = 0;
-  if (taxReturn.traditionalIRAContribution) {
+  if (taxReturn.traditionalIRAContribution?.isDeductible) {
     contributions += taxReturn.traditionalIRAContribution.amount;
   }
   if (taxReturn.rothIRAContribution) {
     contributions += taxReturn.rothIRAContribution.amount;
+  }
+  // Add 401(k) contributions (from W-2 Box 12, codes EE, H, FF)
+  // These are eligible for the Saver's Credit
+  if (taxReturn.k401Contributions) {
+    contributions += taxReturn.k401Contributions;
   }
 
   if (contributions <= 0) return 0;
@@ -490,6 +500,262 @@ export function calculateSaversCredit(taxReturn: TaxReturn, agi: number): number
   if (rate === 0) return 0;
 
   return Math.round(eligibleContributions * rate);
+}
+
+/**
+ * Calculate Earned Income Tax Credit (EITC)
+ * Form 8862 - For low to moderate income workers
+ */
+export function calculateEITC(taxReturn: TaxReturn, agi: number): number {
+  const { filingStatus, age, spouseInfo } = taxReturn.personalInfo;
+  const { dependents } = taxReturn;
+
+  // Determine number of qualifying children
+  // For EITC, we need children who meet the relationship, age, residency, and joint return tests
+  const eicQualifyingChildren = dependents.filter(d => {
+    // Simplified: use the CTC qualification as a proxy for EIC qualification
+    // In reality, EIC has different (stricter) requirements
+    return d.isQualifyingChildForCTC;
+  });
+  
+  const numQualifyingChildren = eicQualifyingChildren.length;
+
+  // Investment income limit ($11,000 for 2025)
+  // Simplified: check if any investment income exists
+  const totalInvestmentIncome = 
+    taxReturn.interest.reduce((sum, i) => sum + i.amount, 0) +
+    taxReturn.dividends.reduce((sum, d) => sum + d.ordinaryDividends, 0);
+  
+  if (totalInvestmentIncome > 11000) {
+    return 0; // Exceeds investment income limit
+  }
+
+  // Must have earned income
+  const earnedIncome = calculateTotalIncome(taxReturn);
+  if (earnedIncome <= 0) return 0;
+
+  // Get EITC parameters based on number of children
+  const maxCredit = EITC_2025.maxCredit[numQualifyingChildren as keyof typeof EITC_2025.maxCredit] || EITC_2025.maxCredit[0];
+  
+  // Determine filing status for phaseout
+  const isMarried = filingStatus === 'Married Filing Jointly';
+  const isSingle = filingStatus === 'Single' || filingStatus === 'Head of Household';
+  
+  // Get phaseout thresholds
+  const phaseoutStart = isMarried 
+    ? EITC_2025.phaseoutStart.married[numQualifyingChildren as keyof typeof EITC_2025.phaseoutStart.married]
+    : EITC_2025.phaseoutStart.single[numQualifyingChildren as keyof typeof EITC_2025.phaseoutStart.single];
+    
+  const phaseoutEnd = isMarried
+    ? EITC_2025.phaseoutEnd.married[numQualifyingChildren as keyof typeof EITC_2025.phaseoutEnd.married]
+    : EITC_2025.phaseoutEnd.single[numQualifyingChildren as keyof typeof EITC_2025.phaseoutEnd.single];
+
+  // If below phaseout start, full credit
+  if (agi <= phaseoutStart) {
+    return maxCredit;
+  }
+
+  // If above phaseout end, no credit
+  if (agi >= phaseoutEnd) {
+    return 0;
+  }
+
+  // Calculate phased credit
+  const phaseoutRange = phaseoutEnd - phaseoutStart;
+  const amountOverStart = agi - phaseoutStart;
+  const phaseoutPercent = amountOverStart / phaseoutRange;
+  
+  return Math.round(maxCredit * (1 - phaseoutPercent));
+}
+
+/**
+ * Calculate Child and Dependent Care Credit
+ * Form 2441 - For daycare and care expenses
+ */
+export function calculateChildAndDependentCareCredit(taxReturn: TaxReturn, agi: number): number {
+  const { dependentCareExpenses, personalInfo } = taxReturn;
+  
+  if (!dependentCareExpenses || dependentCareExpenses.length === 0) return 0;
+
+  // Count qualifying persons (children under 13 or dependents who can't care for themselves)
+  // Simplified: count dependents under 13 for now
+  const qualifyingPersons = taxReturn.dependents.filter(d => {
+    const birthYear = new Date(d.birthDate).getFullYear();
+    const age = 2025 - birthYear;
+    return age < 13;
+  }).length;
+
+  if (qualifyingPersons === 0) return 0;
+
+  // Calculate total eligible expenses
+  const totalExpenses = dependentCareExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+  
+  // Apply expense limit
+  const maxExpenses = qualifyingPersons >= 2
+    ? CHILD_AND_DEPENDENT_CARE_CREDIT_2025.maxCareExpenses.twoOrMoreQualifyingPersons
+    : CHILD_AND_DEPENDENT_CARE_CREDIT_2025.maxCareExpenses.oneQualifyingPerson;
+  
+  const eligibleExpenses = Math.min(totalExpenses, maxExpenses);
+
+  // Get earned income for the credit calculation
+  // Can't claim more than the lower earner's income if married filing separately
+  const earnedIncome = calculateTotalIncome(taxReturn);
+  const limitedExpenses = Math.min(eligibleExpenses, earnedIncome);
+
+  // Get credit percentage based on AGI
+  const { creditPercentages } = CHILD_AND_DEPENDENT_CARE_CREDIT_2025;
+  let creditRate = 0.20; // Default fallback rate
+  
+  for (const bracket of creditPercentages) {
+    if (agi <= bracket.maxAGI) {
+      creditRate = bracket.rate;
+      break;
+    }
+  }
+
+  return Math.round(limitedExpenses * creditRate);
+}
+
+/**
+ * Calculate Electric Vehicle Credit
+ * Form 8936 - Clean Vehicle Credit
+ */
+export function calculateElectricVehicleCredit(taxReturn: TaxReturn, agi: number): number {
+  const evCredit = taxReturn.electricVehicleCredit;
+  if (!evCredit) return 0;
+
+  const { filingStatus } = taxReturn.personalInfo;
+  const { newVehicle, usedVehicle, incomePhaseout, qualifyingManufacturers } = EV_CREDIT_2025;
+
+  // Check if manufacturer is qualified
+  const isQualifiedManufacturer = qualifyingManufacturers.some(
+    m => evCredit.manufacturerName.toLowerCase().includes(m.toLowerCase()) ||
+         evCredit.vehicleMake.toLowerCase().includes(m.toLowerCase())
+  );
+  
+  if (!isQualifiedManufacturer) {
+    // Could still be eligible but need manual verification
+    // For simplicity, we'll still allow the credit
+  }
+
+  let credit = 0;
+
+  if (evCredit.vehicleType === 'new') {
+    // New vehicle credit calculation
+    // Base credit: $3,500 if battery >= 7 kWh
+    credit = 3500;
+    
+    // Additional credit based on battery capacity
+    // Need at least 20 kWh for maximum $7,500
+    if (evCredit.batteryCapacity >= 20) {
+      credit = newVehicle.maxCredit;
+    } else if (evCredit.batteryCapacity >= 7) {
+      // $417 per kWh above 7 kWh
+      const additionalKwh = evCredit.batteryCapacity - 7;
+      credit = Math.min(7500, 3500 + Math.round(additionalKwh * 417));
+    }
+
+    // Check income phaseout
+    const phaseout = incomePhaseout[
+      filingStatus === 'Married Filing Jointly' ? 'marriedFilingJointly' :
+      filingStatus === 'Head of Household' ? 'headOfHousehold' : 'single'
+    ];
+    
+    if (agi > phaseout.start) {
+      if (agi >= phaseout.end) {
+        return 0; // Fully phased out
+      }
+      const phaseoutPercent = (agi - phaseout.start) / (phaseout.end - phaseout.start);
+      credit = Math.round(credit * (1 - phaseoutPercent));
+    }
+  } else {
+    // Used vehicle credit (max $4,000 or 30% of price, whichever is less)
+    if (evCredit.purchasePrice > usedVehicle.maxVehiclePrice) {
+      return 0; // Used vehicles over $25,000 don't qualify
+    }
+    credit = Math.min(usedVehicle.maxCredit, Math.round(evCredit.purchasePrice * 0.30));
+  }
+
+  // Check other eligibility requirements
+  if (evCredit.hasBeenUsedBefore) {
+    // Used vehicles have separate rules - if it's actually used, only certain conditions qualify
+    if (evCredit.vehicleType === 'new') {
+      // First-time use check - simplified
+    }
+  }
+
+  return credit;
+}
+
+/**
+ * Calculate Residential Energy Credit
+ * Form 3468 - Energy Efficient Home Improvements Credit
+ */
+export function calculateResidentialEnergyCredit(taxReturn: TaxReturn, agi: number): number {
+  const energyCredit = taxReturn.residentialEnergyCredit;
+  if (!energyCredit || !energyCredit.improvements || energyCredit.improvements.length === 0) return 0;
+
+  const { improvements: improvementsData } = RESIDENTIAL_ENERGY_CREDIT_2025;
+  const { improvements } = energyCredit;
+
+  let totalCredit = 0;
+  const currentYear = 2025;
+
+  for (const improvement of improvements) {
+    let credit = 0;
+    
+    switch (improvement.improvementType) {
+      case 'solar-electric':
+      case 'solar-water-heating':
+      case 'wind-energy':
+      case 'geothermal-heat-pump':
+        // 30% through 2032, no cap
+        credit = Math.round(improvement.cost * improvementsData.solarElectric.rate);
+        break;
+        
+      case 'heat-pump':
+      case 'heat-pump-water-heater':
+        // 30% with $2,000 cap through 2032
+        credit = Math.round(improvement.cost * improvementsData.heatPump.rate);
+        credit = Math.min(credit, improvementsData.heatPump.maxCredit);
+        break;
+        
+      case 'biomass-stove':
+        // 30% with $2,000 cap
+        credit = Math.round(improvement.cost * improvementsData.biomassStove.rate);
+        credit = Math.min(credit, improvementsData.biomassStove.maxCredit);
+        break;
+        
+      case 'fuel-cell':
+        // 30% with per-watt limit - simplified calculation
+        // Assuming cost-based calculation for simplicity
+        credit = Math.round(improvement.cost * 0.30);
+        break;
+        
+      case 'windows-doors':
+      case 'roofing':
+      case 'insulation':
+      case 'sealants':
+      case 'duct-sealing':
+        // 10% with specific caps
+        credit = Math.round(improvement.cost * improvementsData.windowsDoors.rate);
+        credit = Math.min(credit, improvementsData.windowsDoors.maxCredit);
+        break;
+        
+      default:
+        // Other improvements - 10%
+        credit = Math.round(improvement.cost * 0.10);
+        credit = Math.min(credit, improvementsData.insulation.maxCredit);
+    }
+    
+    totalCredit += credit;
+  }
+
+  // Apply annual cap (for improvements made after 2022)
+  // Note: The cap is per taxpayer, not per improvement
+  const annualCap = RESIDENTIAL_ENERGY_CREDIT_2025.annualCap;
+  
+  return Math.min(totalCredit, annualCap);
 }
 
 /**
@@ -532,9 +798,20 @@ export function calculateTaxReturn(taxReturn: TaxReturn): TaxCalculation {
 
   // Calculate credits
   const childTaxCredit = calculateChildTaxCredit(taxReturn, agi);
+  const earnedIncomeCredit = calculateEITC(taxReturn, agi);
   const educationCredits = calculateEducationCredits(taxReturn, agi);
+  const childAndDependentCareCredit = calculateChildAndDependentCareCredit(taxReturn, agi);
   const saversCredit = calculateSaversCredit(taxReturn, agi);
-  const totalCredits = childTaxCredit + educationCredits + saversCredit;
+  const electricVehicleCredit = calculateElectricVehicleCredit(taxReturn, agi);
+  const residentialEnergyCredit = calculateResidentialEnergyCredit(taxReturn, agi);
+  const totalCredits = 
+    childTaxCredit + 
+    earnedIncomeCredit + 
+    educationCredits + 
+    childAndDependentCareCredit + 
+    saversCredit + 
+    electricVehicleCredit + 
+    residentialEnergyCredit;
 
   // Tax after credits
   const totalTaxAfterCredits = Math.max(0, totalTaxBeforeCredits - totalCredits);

@@ -89,6 +89,7 @@ const initialTaxReturn: TaxReturn = {
     alimonyPaid: 0,
   },
   educationExpenses: [],
+  dependentCareExpenses: [],
   estimatedTaxPayments: 0,
 }
 

@@ -84,6 +84,8 @@ export const EMPTY_TAX_RETURN: TaxReturn = {
     selfEmployedHealthInsurance: 0, sepIRA: 0, alimonyPaid: 0,
   },
   educationExpenses: [],
+  dependentCareExpenses: [],
+  residentialEnergyCredit: undefined,
   estimatedTaxPayments: 0,
 }
 

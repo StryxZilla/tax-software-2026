@@ -201,7 +201,48 @@ export interface TaxCredits {
   lifetimeLearningCredit: number;
   retirementSavingsCredit: number;
   childAndDependentCareCredit: number;
+  electricVehicleCredit: number;
+  residentialEnergyCredit: number;
   foreignTaxCredit: number;
+}
+
+// Child and Dependent Care Credit
+export interface DependentCareExpenses {
+  dependentName: string;
+  ssn: string;
+  careProvider: string;
+  ein?: string;
+  amount: number;
+}
+
+// Electric Vehicle Credit (Clean Vehicle Credit - Form 8936)
+export interface ElectricVehicleCredit {
+  vehicleType: 'new' | 'used';
+  vin: string;
+  vehicleMake: string;
+  vehicleModel: string;
+  purchaseDate: string;
+  purchasePrice: number;
+  batteryCapacity: number; // kWh
+  isQualifiedManufacturer: boolean;
+  manufacturerName: string;
+  hasBeenUsedBefore: boolean;
+  modifiedForDisabled: boolean;
+  PlacedInServiceInGreenhouseGasEmissionTestState: boolean;
+}
+
+// Residential Energy Credit (Form 3468)
+export interface ResidentialEnergyImprovement {
+  improvementType: 'solar-electric' | 'solar-water-heating' | 'wind-energy' | 'geothermal-heat-pump' | 'fuel-cell' | 'heat-pump' | 'heat-pump-water-heater' | 'biomass-stove' | 'windows-doors' | 'roofing' | 'insulation' | 'sealants' | 'duct-sealing' | 'other';
+  description: string;
+  installationDate: string;
+  cost: number;
+  isMainHome: boolean;
+}
+
+export interface ResidentialEnergyCredit {
+  improvements: ResidentialEnergyImprovement[];
+  totalQualifiedExpenditures: number;
 }
 
 export interface EducationExpenses {
@@ -250,6 +291,9 @@ export interface TaxReturn {
   itemizedDeductions?: ItemizedDeductions;
   aboveTheLineDeductions: AboveTheLineDeductions;
   educationExpenses: EducationExpenses[];
+  dependentCareExpenses: DependentCareExpenses[];
+  electricVehicleCredit?: ElectricVehicleCredit;
+  residentialEnergyCredit?: ResidentialEnergyCredit;
   estimatedTaxPayments: number;
   taxCalculation?: TaxCalculation;
   // 401(k) contributions - extracted from W-2 Box 12 codes EE and H
