@@ -853,18 +853,30 @@ export async function generateFormW2(w2Data: W2Income, ssn: string, year: number
   page.drawText('$0.00', { x: 400, y: yPos, size: 10, font });
   yPos -= 25;
 
-  // Boxes 12a-d - Codes
-  page.drawText('12a. Deferred compensation & other', { x: 50, y: yPos, size: 9, font });
-  page.drawText('$0.00', { x: 400, y: yPos, size: 10, font });
-  yPos -= 15;
-  page.drawText('12b.', { x: 50, y: yPos, size: 9, font });
-  page.drawText('$0.00', { x: 400, y: yPos, size: 10, font });
-  yPos -= 15;
-  page.drawText('12c.', { x: 50, y: yPos, size: 9, font });
-  page.drawText('$0.00', { x: 400, y: yPos, size: 10, font });
-  yPos -= 15;
-  page.drawText('12d.', { x: 50, y: yPos, size: 9, font });
-  page.drawText('$0.00', { x: 400, y: yPos, size: 10, font });
+  // Boxes 12a-d - Codes (from Box 12 data)
+  const box12 = w2Data.box12 || [];
+  const box12Labels = ['12a.', '12b.', '12c.', '12d.'];
+  if (box12.length > 0) {
+    for (let i = 0; i < Math.min(box12.length, 4); i++) {
+      const entry = box12[i];
+      const codeLabel = entry.code ? `Code ${entry.code}` : '';
+      page.drawText(`${box12Labels[i]} ${codeLabel}`, { x: 50, y: yPos, size: 9, font });
+      page.drawText(formatCurrency(entry.amount), { x: 400, y: yPos, size: 10, font });
+      yPos -= 15;
+    }
+  } else {
+    page.drawText('12a. Deferred compensation & other', { x: 50, y: yPos, size: 9, font });
+    page.drawText('$0.00', { x: 400, y: yPos, size: 10, font });
+    yPos -= 15;
+    page.drawText('12b.', { x: 50, y: yPos, size: 9, font });
+    page.drawText('$0.00', { x: 400, y: yPos, size: 10, font });
+    yPos -= 15;
+    page.drawText('12c.', { x: 50, y: yPos, size: 9, font });
+    page.drawText('$0.00', { x: 400, y: yPos, size: 10, font });
+    yPos -= 15;
+    page.drawText('12d.', { x: 50, y: yPos, size: 9, font });
+    page.drawText('$0.00', { x: 400, y: yPos, size: 10, font });
+  }
   yPos -= 25;
 
   // Box 13 - Checkboxes

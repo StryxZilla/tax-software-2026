@@ -42,6 +42,11 @@ export interface Dependent {
 }
 
 // Income Types
+export interface W2IncomeBox12 {
+  code: string;  // e.g., "DD", "G", "L", "R", "W", etc.
+  amount: number;
+}
+
 export interface W2Income {
   employer: string;
   ein: string;
@@ -51,6 +56,7 @@ export interface W2Income {
   socialSecurityTaxWithheld: number;
   medicareWages: number;
   medicareTaxWithheld: number;
+  box12: W2IncomeBox12[];  // Other compensation (codes DD, G, L, R, W, etc.)
 }
 
 export interface Interest1099INT {

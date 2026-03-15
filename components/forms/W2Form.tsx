@@ -141,6 +141,7 @@ export default function W2Form({ values, onChange, onValidationChange, blockedNe
       socialSecurityTaxWithheld: 0,
       medicareWages: 0,
       medicareTaxWithheld: 0,
+      box12: [],
     }]);
   };
 
@@ -422,6 +423,93 @@ export default function W2Form({ values, onChange, onValidationChange, blockedNe
                       )}
                     </div>
                   </div>
+                </div>
+
+                {/* Box 12 - Other */}
+                <div className="mt-6 pt-6 border-t border-slate-200">
+                  <div className="flex justify-between items-center mb-4">
+                    <h4 className="text-lg font-semibold text-slate-900">Box 12 (Other Compensation)</h4>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const current = w2.box12 || [];
+                        updateW2(index, { box12: [...current, { code: '', amount: 0 }] });
+                      }}
+                      className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                    >
+                      + Add Box 12 Entry
+                    </button>
+                  </div>
+                  {(w2.box12 && w2.box12.length > 0) ? (
+                    <div className="space-y-3">
+                      {w2.box12.map((entry, box12Idx) => (
+                        <div key={box12Idx} className="flex gap-3 items-start">
+                          <div className="w-24">
+                            <label className="block text-xs font-medium text-slate-700 mb-1">Code</label>
+                            <select
+                              value={entry.code}
+                              onChange={(e) => {
+                                const updated = [...w2.box12];
+                                updated[box12Idx] = { ...entry, code: e.target.value };
+                                updateW2(index, { box12: updated });
+                              }}
+                              className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            >
+                              <option value="">Select code</option>
+                              <option value="A">A - Uncollected social security</option>
+                              <option value="B">B - Uncollected Medicare</option>
+                              <option value="C">C - Taxable cost of group-term life insurance</option>
+                              <option value="DD">DD - Employer-provided health coverage</option>
+                              <option value="E">E - 403(b) contributions</option>
+                              <option value="F">F - 457(b) contributions</option>
+                              <option value="G">G - Nontaxable fringe benefits</option>
+                              <option value="H">H - Nutritious meals/lodging</option>
+                              <option value="J">J - Nontaxable sick pay</option>
+                              <option value="K">K - 20% excise on excess golden parachutes</option>
+                              <option value="L">L - Business expenses reimbursement</option>
+                              <option value="M">M - Uncollected social security on tips</option>
+                              <option value="N">N - Uncollected Medicare on tips</option>
+                              <option value="P">P - Qualified moving expenses</option>
+                              <option value="Q">Q - Nonqualified deferred comp</option>
+                              <option value="R">R - Employee HSA contributions</option>
+                              <option value="S">S - 457 contributions</option>
+                              <option value="T">T - Adoption benefits</option>
+                              <option value="V">V - Income from exercise of ISOs</option>
+                              <option value="W">W - Employer HSA contributions</option>
+                              <option value="Y">Y - Deferral under 409A</option>
+                              <option value="Z">Z - Income under 409A</option>
+                              <option value="AA">AA - After-tax 401(k) contributions</option>
+                              <option value="BB">BB - After-tax 403(b) contributions</option>
+                              <option value="CC">CC - Student loan payments</option>
+                            </select>
+                          </div>
+                          <div className="flex-1">
+                            <label className="block text-xs font-medium text-slate-700 mb-1">Amount</label>
+                            <CurrencyInput
+                              value={entry.amount}
+                              onValueChange={(v) => {
+                                const updated = [...w2.box12];
+                                updated[box12Idx] = { ...entry, amount: v };
+                                updateW2(index, { box12: updated });
+                              }}
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = w2.box12.filter((_, i) => i !== box12Idx);
+                              updateW2(index, { box12: updated });
+                            }}
+                            className="mt-6 text-red-500 hover:text-red-700"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-500">No Box 12 entries. Leave blank if not applicable.</p>
+                  )}
                 </div>
               </div>
             </div>

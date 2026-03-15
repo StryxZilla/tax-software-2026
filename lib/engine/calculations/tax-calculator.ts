@@ -16,15 +16,38 @@ import {
   SAVERS_CREDIT_2025,
 } from '../../../data/tax-constants';
 
+// Box 12 codes that are taxable and should be added to wages
+const TAXABLE_BOX12_CODES = new Set([
+  'A', 'B', 'C', 'DD', 'M', 'N', 'Q', 'R', 'T', 'V', 'W', 'Y', 'Z', 'CC'
+]);
+
+/**
+ * Calculate taxable Box 12 amounts from W-2
+ */
+export function calculateTaxableBox12(w2Income: TaxReturn['w2Income']): number {
+  let total = 0;
+  w2Income.forEach(w2 => {
+    if (w2.box12) {
+      w2.box12.forEach(entry => {
+        if (entry.code && TAXABLE_BOX12_CODES.has(entry.code) && entry.amount > 0) {
+          total += entry.amount;
+        }
+      });
+    }
+  });
+  return total;
+}
+
 /**
  * Calculate total income from all sources
  */
 export function calculateTotalIncome(taxReturn: TaxReturn): number {
   let total = 0;
 
-  // W-2 wages
+  // W-2 wages (including taxable Box 12 amounts)
+  const taxableBox12 = calculateTaxableBox12(taxReturn.w2Income);
   taxReturn.w2Income.forEach(w2 => {
-    total += w2.wages;
+    total += w2.wages + taxableBox12;
   });
 
   // Interest income
