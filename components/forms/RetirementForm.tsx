@@ -115,7 +115,7 @@ export default function RetirementForm({
       {/* Page header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-slate-900 mb-2">Retirement Accounts</h2>
+          <h2 className="text-3xl font-bold text-slate-900 mb-2">Retirement Accounts (Forms 5498, 8606)</h2>
           <p className="text-slate-600">Enter IRA contributions, Roth conversions, and distributions for 2025.</p>
         </div>
         <button

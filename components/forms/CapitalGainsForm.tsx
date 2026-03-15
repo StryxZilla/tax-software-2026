@@ -122,8 +122,8 @@ export default function CapitalGainsForm({ values, onChange, onValidationChange 
     <div className="space-y-8 max-w-4xl mx-auto">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold">Schedule D - Capital Gains and Losses</h2>
-          <p className="text-sm text-gray-600 mt-1">Report sales of stocks, bonds, and other capital assets</p>
+          <h2 className="text-2xl font-bold">Capital Gains (Form 1099-B)</h2>
+          <p className="text-sm text-gray-600 mt-1">Enter data from your 1099-B forms received from brokers</p>
         </div>
         <button
           type="button"

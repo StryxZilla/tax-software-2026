@@ -160,7 +160,7 @@ export default function W2Form({ values, onChange, onValidationChange, blockedNe
       {/* Page header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-bold text-slate-900 mb-2">W-2 Income</h2>
+          <h2 className="text-3xl font-bold text-slate-900 mb-2">Wages (Form W-2)</h2>
           <p className="text-slate-600">Add all W-2 forms you received from employers in 2025.</p>
         </div>
         <button

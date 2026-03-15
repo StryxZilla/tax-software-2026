@@ -95,7 +95,7 @@ export default function CreditsForm({
     <div className="space-y-8 max-w-5xl mx-auto px-4 py-6 fade-in">
       {/* Page header */}
       <div>
-        <h2 className="text-3xl font-bold text-slate-900 mb-2">Tax Credits</h2>
+        <h2 className="text-3xl font-bold text-slate-900 mb-2">Tax Credits (Form 8863)</h2>
         <p className="text-slate-600">Tax credits directly reduce the amount of tax you owe, dollar-for-dollar.</p>
       </div>
 
