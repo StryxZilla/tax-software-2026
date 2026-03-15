@@ -123,20 +123,24 @@ export default function InterestIncomeForm({ values, onChange, onValidationChang
 
       {/* OCR Upload */}
       <div className="card-premium p-6">
-        <h3 className="text-lg font-semibold text-slate-900 mb-4">Upload 1099-INT Image</h3>
-        <p className="text-sm text-slate-600 mb-4">
-          Take a photo of your 1099-INT form or upload a PDF, and we'll automatically extract the data.
-        </p>
-        <DocumentUpload
-          onExtract={extract1099INTData}
-          buildReport={build1099IntExtractionReport}
-          onDataExtracted={(data) => {
-            addInterest();
-            const newIndex = values.length;
-            updateInterest(newIndex, data);
-          }}
-          label="Upload 1099-INT Document"
-        />
+        {process.env.NEXT_PUBLIC_FEATURE_OCR_UPLOAD === 'true' && (
+          <>
+            <h3 className="text-lg font-semibold text-slate-900 mb-4">Upload 1099-INT Image</h3>
+            <p className="text-sm text-slate-600 mb-4">
+              Take a photo of your 1099-INT form or upload a PDF, and we'll automatically extract the data.
+            </p>
+            <DocumentUpload
+              onExtract={extract1099INTData}
+              buildReport={build1099IntExtractionReport}
+              onDataExtracted={(data) => {
+                addInterest();
+                const newIndex = values.length;
+                updateInterest(newIndex, data);
+              }}
+              label="Upload 1099-INT Document"
+            />
+          </>
+        )}
       </div>
 
       {/* Total summary */}

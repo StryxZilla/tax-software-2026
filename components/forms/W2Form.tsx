@@ -174,21 +174,25 @@ export default function W2Form({ values, onChange, onValidationChange, blockedNe
 
       {/* OCR Upload */}
       <div className="card-premium p-6">
-        <h3 className="text-lg font-semibold text-slate-900 mb-4">Upload W-2 Image</h3>
-        <p className="text-sm text-slate-600 mb-4">
-          Take a photo of your W-2 or upload a PDF, and we'll automatically extract the data.
-        </p>
-        <DocumentUpload
-          onExtract={extractW2Data}
-          buildReport={buildW2ExtractionReport}
-          onDataExtracted={(data) => {
-            // Add extracted W-2 to the list
-            addW2();
-            const newIndex = values.length;
-            updateW2(newIndex, data);
-          }}
-          label="Upload W-2 Document"
-        />
+        {process.env.NEXT_PUBLIC_FEATURE_OCR_UPLOAD === 'true' && (
+          <>
+            <h3 className="text-lg font-semibold text-slate-900 mb-4">Upload W-2 Image</h3>
+            <p className="text-sm text-slate-600 mb-4">
+              Take a photo of your W-2 or upload a PDF, and we'll automatically extract the data.
+            </p>
+            <DocumentUpload
+              onExtract={extractW2Data}
+              buildReport={buildW2ExtractionReport}
+              onDataExtracted={(data) => {
+                // Add extracted W-2 to the list
+                addW2();
+                const newIndex = values.length;
+                updateW2(newIndex, data);
+              }}
+              label="Upload W-2 Document"
+            />
+          </>
+        )}
       </div>
 
       {/* Validation summary */}
