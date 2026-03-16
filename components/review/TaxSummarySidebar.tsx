@@ -3,7 +3,7 @@
 import React, { useMemo, useState } from 'react';
 import { useTaxReturn } from '@/lib/context/TaxReturnContext';
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { ChevronDown, ChevronUp, TrendingUp, TrendingDown, DollarSign, Percent, Loader2, Clock } from 'lucide-react';
+import { ChevronDown, ChevronUp, TrendingUp, TrendingDown, DollarSign, Percent, Loader2, Clock, AlertTriangle, CheckCircle, Info } from 'lucide-react';
 import { TAX_BRACKETS_2025 } from '../../data/tax-constants';
 
 const COLORS = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#ef4444'];
@@ -136,6 +136,83 @@ export default function TaxSummarySidebar() {
 
   const isRefund = (taxCalculation?.refundOrAmountOwed ?? 0) > 0;
 
+  // Calculate completion percentage based on filled sections
+  const completionPercentage = useMemo(() => {
+    if (!taxReturn) return 0;
+    
+    let filled = 0;
+    let total = 0;
+
+    // Personal Info (4 fields)
+    total += 4;
+    if (taxReturn.personalInfo.firstName) filled++;
+    if (taxReturn.personalInfo.lastName) filled++;
+    if (taxReturn.personalInfo.ssn) filled++;
+    if (taxReturn.personalInfo.filingStatus) filled++;
+
+    // W-2 Income
+    total += 1;
+    if (taxReturn.w2Income.length > 0 && taxReturn.w2Income.some(w2 => w2.wages > 0)) filled++;
+
+    // Filing Status determines additional requirements
+    if (taxReturn.personalInfo.filingStatus === 'Married Filing Jointly' || 
+        taxReturn.personalInfo.filingStatus === 'Married Filing Separately') {
+      total += 1; // Spouse info
+      if (taxReturn.personalInfo.spouseInfo?.firstName) filled++;
+    }
+
+    return Math.round((filled / total) * 100);
+  }, [taxReturn]);
+
+  // Check AMT status
+  const hasAMT = (taxCalculation?.amt ?? 0) > 0;
+
+  // Check EITC eligibility (simplified check - AGI within range, has dependents, no EITC in credits)
+  const eitcEligible = useMemo(() => {
+    if (!taxCalculation) return false;
+    const agi = taxCalculation.agi;
+    const hasDependents = taxReturn.dependents.length > 0;
+    // Simplified EITC range check - actual EITC calculation is complex
+    // Based on 2025 EITC thresholds: $17,730 - $64,430 for 1-3+ children
+    const maxAgi = hasDependents ? 64430 : 22000;
+    const minAgi = hasDependents ? 1000 : 1;
+    
+    // Only show if they have dependents and income in range (crude proxy for potential eligibility)
+    // In production, this would use a proper EITC calculator
+    return hasDependents && agi >= minAgi && agi <= maxAgi;
+  }, [taxCalculation, taxReturn]);
+
+  // Warning messages
+  const warnings = useMemo(() => {
+    const msgs: Array<{ type: 'amt' | 'eitc' | 'medicare'; message: string; details: string }> = [];
+    
+    if (hasAMT) {
+      msgs.push({
+        type: 'amt',
+        message: 'Alternative Minimum Tax (AMT) may apply',
+        details: `You have $${taxCalculation?.amt?.toLocaleString() ?? 0} in AMT calculations. This is a parallel tax system that limits some deductions.`
+      });
+    }
+
+    if ((taxCalculation?.additionalMedicareTax ?? 0) > 0) {
+      msgs.push({
+        type: 'medicare',
+        message: 'Additional Medicare Tax applies',
+        details: `You owe $${taxCalculation?.additionalMedicareTax?.toLocaleString() ?? 0} in Additional Medicare Tax on income above $200,000.`
+      });
+    }
+
+    if (eitcEligible) {
+      msgs.push({
+        type: 'eitc',
+        message: 'You may qualify for EITC',
+        details: 'Based on your income and dependents, you may be eligible for the Earned Income Tax Credit. Consider reviewing your eligibility.'
+      });
+    }
+
+    return msgs;
+  }, [hasAMT, taxCalculation, eitcEligible]);
+
   if (isCalculating) {
     return (
       <div className="bg-gradient-to-br from-slate-50 to-blue-50 shadow-xl rounded-2xl p-8 border border-slate-200">
@@ -200,6 +277,52 @@ export default function TaxSummarySidebar() {
             <p className="text-blue-100 text-sm mt-1">Live calculation</p>
           </div>
 
+          {/* Progress Header */}
+          <div className="px-6 pt-4">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Completion</span>
+              <span className="text-sm font-bold text-blue-600">{completionPercentage}%</span>
+            </div>
+            <div className="w-full bg-slate-200 rounded-full h-2.5">
+              <div 
+                className="bg-gradient-to-r from-green-400 to-green-600 h-2.5 rounded-full transition-all duration-500" 
+                style={{ width: `${completionPercentage}%` }}
+              ></div>
+            </div>
+          </div>
+
+          {/* Warning Banners */}
+          {warnings.length > 0 && (
+            <div className="px-6 pt-4 space-y-2">
+              {warnings.map((warning, idx) => (
+                <div 
+                  key={idx}
+                  className={`rounded-lg p-3 border ${
+                    warning.type === 'amt' 
+                      ? 'bg-amber-50 border-amber-200' 
+                      : warning.type === 'eitc'
+                        ? 'bg-blue-50 border-blue-200'
+                        : 'bg-orange-50 border-orange-200'
+                  }`}
+                >
+                  <div className="flex items-start space-x-2">
+                    <AlertTriangle className={`w-4 h-4 mt-0.5 flex-shrink-0 ${
+                      warning.type === 'amt' 
+                        ? 'text-amber-600' 
+                        : warning.type === 'eitc'
+                          ? 'text-blue-600'
+                          : 'text-orange-600'
+                    }`} />
+                    <div>
+                      <p className="text-sm font-semibold text-slate-800">{warning.message}</p>
+                      <p className="text-xs text-slate-600 mt-1">{warning.details}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
           <div className="p-6 space-y-6">
             {/* Key Metrics */}
             <div className="space-y-4">
@@ -230,6 +353,32 @@ export default function TaxSummarySidebar() {
                   ${taxCalculation.totalTax.toLocaleString()}
                 </div>
               </div>
+
+              {/* QBI Deduction - NEW */}
+              {(taxCalculation.qbiDeduction ?? 0) > 0 && (
+                <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
+                  <div className="flex items-center space-x-2 mb-1">
+                    <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">QBI Deduction</div>
+                    <Info className="w-3 h-3 text-slate-400" />
+                  </div>
+                  <div className="text-2xl font-bold text-green-600 currency">
+                    ${taxCalculation.qbiDeduction.toLocaleString()}
+                  </div>
+                </div>
+              )}
+
+              {/* Additional Medicare Tax - NEW */}
+              {(taxCalculation.additionalMedicareTax ?? 0) > 0 && (
+                <div className="bg-white rounded-xl p-4 shadow-sm border border-orange-200 hover:shadow-md transition-shadow">
+                  <div className="flex items-center space-x-2 mb-1">
+                    <div className="text-xs font-semibold text-orange-600 uppercase tracking-wide">Additional Medicare Tax</div>
+                    <AlertTriangle className="w-3 h-3 text-orange-500" />
+                  </div>
+                  <div className="text-2xl font-bold text-orange-600 currency">
+                    ${taxCalculation.additionalMedicareTax.toLocaleString()}
+                  </div>
+                </div>
+              )}
 
               {/* Refund/Owed - Highlighted */}
               <div className={`
@@ -375,6 +524,51 @@ export default function TaxSummarySidebar() {
 
         {!isCollapsed && (
           <div className="p-5 max-h-[70vh] overflow-y-auto space-y-4 bg-gradient-to-br from-slate-50 to-blue-50">
+            {/* Progress Header - Mobile */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Completion</span>
+                <span className="text-sm font-bold text-blue-600">{completionPercentage}%</span>
+              </div>
+              <div className="w-full bg-slate-200 rounded-full h-2">
+                <div 
+                  className="bg-gradient-to-r from-green-400 to-green-600 h-2 rounded-full transition-all duration-500" 
+                  style={{ width: `${completionPercentage}%` }}
+                ></div>
+              </div>
+            </div>
+
+            {/* Warning Banners - Mobile */}
+            {warnings.length > 0 && (
+              <div className="space-y-2">
+                {warnings.map((warning, idx) => (
+                  <div 
+                    key={idx}
+                    className={`rounded-lg p-2.5 border ${
+                      warning.type === 'amt' 
+                        ? 'bg-amber-50 border-amber-200' 
+                        : warning.type === 'eitc'
+                          ? 'bg-blue-50 border-blue-200'
+                          : 'bg-orange-50 border-orange-200'
+                    }`}
+                  >
+                    <div className="flex items-start space-x-2">
+                      <AlertTriangle className={`w-3.5 h-3.5 mt-0.5 flex-shrink-0 ${
+                        warning.type === 'amt' 
+                          ? 'text-amber-600' 
+                          : warning.type === 'eitc'
+                            ? 'text-blue-600'
+                            : 'text-orange-600'
+                      }`} />
+                      <div>
+                        <p className="text-xs font-semibold text-slate-800">{warning.message}</p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
             {/* Key Metrics Grid */}
             <div className="grid grid-cols-2 gap-3">
               <div className="bg-white rounded-lg p-3 shadow-sm border border-slate-200">
@@ -404,6 +598,26 @@ export default function TaxSummarySidebar() {
                   ${taxCalculation.totalTax.toLocaleString()}
                 </div>
               </div>
+
+              {/* QBI Deduction - Mobile - NEW */}
+              {(taxCalculation.qbiDeduction ?? 0) > 0 && (
+                <div className="bg-white rounded-lg p-3 shadow-sm border border-slate-200">
+                  <div className="text-xs font-semibold text-green-600 uppercase tracking-wide mb-1">QBI Deduction</div>
+                  <div className="text-lg font-bold text-green-600 currency">
+                    ${taxCalculation.qbiDeduction.toLocaleString()}
+                  </div>
+                </div>
+              )}
+
+              {/* Additional Medicare Tax - Mobile - NEW */}
+              {(taxCalculation.additionalMedicareTax ?? 0) > 0 && (
+                <div className="bg-white rounded-lg p-3 shadow-sm border border-orange-200">
+                  <div className="text-xs font-semibold text-orange-600 uppercase tracking-wide mb-1">Add'l Medicare</div>
+                  <div className="text-lg font-bold text-orange-600 currency">
+                    ${taxCalculation.additionalMedicareTax.toLocaleString()}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Refund/Owed - Highlighted */}
