@@ -1,10 +1,28 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useCallback, useEffect } from 'react';
 import { useTaxReturn } from '@/lib/context/TaxReturnContext';
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { ChevronDown, ChevronUp, TrendingUp, TrendingDown, DollarSign, Percent, Loader2, Clock, AlertTriangle, CheckCircle, Info } from 'lucide-react';
-import { TAX_BRACKETS_2025 } from '../../data/tax-constants';
+import { ChevronDown, ChevronUp, TrendingUp, TrendingDown, DollarSign, Percent, Loader2, Clock, AlertTriangle, CheckCircle, Info, Briefcase, PiggyBank, Calculator, RefreshCcw, ArrowRight, Sliders } from 'lucide-react';
+import { TAX_BRACKETS_2025, IRA_LIMITS_2025 } from '../../data/tax-constants';
+import { 
+  calculateRetirementAnalysis, 
+  calculateTaxRateAnalysis,
+  calculateTaxPlanningInsights 
+} from '@/lib/engine/calculations/tax-planning';
+
+// 2025 401(k) Contribution Limits
+const K401_LIMIT_2025 = 23500;
+const K401_CATCHUP_2025 = 31000;
+
+// What-if calculation result types
+interface WhatIfResult {
+  taxSavings: number;
+  newTaxableIncome: number;
+  newTotalTax: number;
+  newEffectiveRate: number;
+  netCost: number;
+}
 
 const COLORS = ['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#ef4444'];
 
@@ -49,6 +67,93 @@ export default function TaxSummarySidebar() {
 
     return false;
   });
+  
+  // Expandable section states
+  const [isTaxBreakdownExpanded, setIsTaxBreakdownExpanded] = useState(false);
+  const [isDeductionsExpanded, setIsDeductionsExpanded] = useState(false);
+  const [isInsightsExpanded, setIsInsightsExpanded] = useState(true); // Insights default expanded
+
+  // What-if scenario state
+  const [whatIf401k, setWhatIf401k] = useState<number | null>(null);
+  const [whatIfIRA, setWhatIfIRA] = useState<number | null>(null);
+  const [whatIfEstimatedTax, setWhatIfEstimatedTax] = useState<number | null>(null);
+
+  // Get current 401k contributions from above-the-line deductions
+  const current401k = useMemo(() => {
+    return taxReturn.aboveTheLineDeductions?.sepIRA ?? 0;
+  }, [taxReturn.aboveTheLineDeductions]);
+
+  // Check if self-employed
+  const isSelfEmployed = useMemo(() => {
+    return taxReturn.selfEmployment && taxReturn.selfEmployment.grossReceipts > 0;
+  }, [taxReturn.selfEmployment]);
+
+  // Calculate what-if impact for 401k contributions
+  const calculate401kImpact = useCallback((additionalContribution: number): WhatIfResult | null => {
+    if (!taxCalculation) return null;
+    
+    const currentTaxable = taxCalculation.taxableIncome;
+    const newTaxable = Math.max(0, currentTaxable - additionalContribution);
+    
+    // Simplified tax calculation - apply marginal rate to the deduction
+    const marginalRate = taxCalculation.taxableIncome > 0 
+      ? taxCalculation.totalTax / taxCalculation.taxableIncome 
+      : 0.22;
+    
+    const taxSavings = additionalContribution * marginalRate;
+    const netCost = additionalContribution - taxSavings;
+    
+    return {
+      taxSavings,
+      newTaxableIncome: newTaxable,
+      newTotalTax: taxCalculation.totalTax - taxSavings,
+      newEffectiveRate: newTaxable > 0 ? ((taxCalculation.totalTax - taxSavings) / newTaxable) * 100 : 0,
+      netCost,
+    };
+  }, [taxCalculation]);
+
+  // Calculate what-if impact for IRA contributions (Traditional vs Roth comparison)
+  const calculateIRAImpact = useCallback((contribution: number): WhatIfResult | null => {
+    if (!taxCalculation) return null;
+    
+    const currentTaxable = taxCalculation.taxableIncome;
+    const newTaxable = Math.max(0, currentTaxable - contribution);
+    
+    // For Traditional: reduces taxable income
+    // For Roth: no deduction but tax-free growth
+    // Show the tax savings from Traditional deduction
+    const marginalRate = taxCalculation.taxableIncome > 0 
+      ? taxCalculation.totalTax / taxCalculation.taxableIncome 
+      : 0.22;
+    
+    const taxSavings = contribution * marginalRate;
+    const netCost = contribution - taxSavings;
+    
+    return {
+      taxSavings,
+      newTaxableIncome: newTaxable,
+      newTotalTax: taxCalculation.totalTax - taxSavings,
+      newEffectiveRate: newTaxable > 0 ? ((taxCalculation.totalTax - taxSavings) / newTaxable) * 100 : 0,
+      netCost,
+    };
+  }, [taxCalculation]);
+
+  // Calculate what-if impact for estimated tax payments
+  const calculateEstimatedTaxImpact = useCallback((additionalPayment: number): WhatIfResult | null => {
+    if (!taxCalculation) return null;
+    
+    // Additional estimated tax payments directly reduce amount owed / increase refund
+    const currentOwed = taxCalculation.refundOrAmountOwed;
+    const newOwed = currentOwed - additionalPayment; // Negative = more refund
+    
+    return {
+      taxSavings: 0, // Not a deduction, just a payment
+      newTaxableIncome: taxCalculation.taxableIncome,
+      newTotalTax: taxCalculation.totalTax,
+      newEffectiveRate: taxCalculation.taxableIncome > 0 ? (taxCalculation.totalTax / taxCalculation.taxableIncome) * 100 : 0,
+      netCost: additionalPayment, // What you actually pay
+    };
+  }, [taxCalculation]);
 
   // Save collapsed state to localStorage
   const toggleCollapsed = () => {
@@ -163,6 +268,77 @@ export default function TaxSummarySidebar() {
 
     return Math.round((filled / total) * 100);
   }, [taxReturn]);
+
+  // Tax Planning Insights
+  const taxPlanningInsights = useMemo(() => {
+    if (!taxReturn || !taxCalculation) return null;
+    return calculateTaxPlanningInsights(taxReturn, {
+      agi: taxCalculation.agi,
+      totalIncome: taxCalculation.totalIncome,
+      totalTax: taxCalculation.totalTax,
+      taxableIncome: taxCalculation.taxableIncome,
+    });
+  }, [taxReturn, taxCalculation]);
+
+  // Deductions data
+  const deductionsData = useMemo(() => {
+    if (!taxCalculation) return null;
+    
+    const standardDeduction = taxCalculation.standardOrItemizedDeduction || 0;
+    const itemizedDeductions = taxCalculation.itemizedDeductions || 0;
+    const isStandard = standardDeduction > itemizedDeductions;
+    
+    // Above-the-line deductions
+    const aboveTheLine = Math.max(0, 
+      (taxCalculation.traditionalIraDeduction || 0) +
+      (taxCalculation.studentLoanInterest || 0) +
+      (taxCalculation.hsaDeduction || 0) +
+      (taxCalculation.selfEmploymentDeduction || 0)
+    );
+
+    return {
+      standardDeduction,
+      itemizedDeductions,
+      isStandard,
+      aboveTheLine,
+      totalDeduction: isStandard ? standardDeduction : itemizedDeductions,
+    };
+  }, [taxCalculation]);
+
+  // Credits data
+  const creditsData = useMemo(() => {
+    if (!taxCalculation || !taxReturn) return null;
+    
+    const credits: Array<{ name: string; amount: number }> = [];
+    
+    // Child Tax Credit (simplified - would need dependent data)
+    if ((taxReturn.dependents?.length || 0) > 0) {
+      const childTaxCredit = taxCalculation.childTaxCredit || 0;
+      if (childTaxCredit > 0) {
+        credits.push({ name: 'Child Tax Credit', amount: childTaxCredit });
+      }
+    }
+    
+    // EITC
+    if ((taxCalculation.earnedIncomeCredit || 0) > 0) {
+      credits.push({ name: 'Earned Income Tax Credit', amount: taxCalculation.earnedIncomeCredit });
+    }
+    
+    // Education credits
+    if ((taxCalculation.educationCredits || 0) > 0) {
+      credits.push({ name: 'Education Credits', amount: taxCalculation.educationCredits });
+    }
+    
+    // Other common credits (simplified)
+    if ((taxCalculation.otherCredits || 0) > 0) {
+      credits.push({ name: 'Other Credits', amount: taxCalculation.otherCredits });
+    }
+
+    return {
+      credits,
+      totalCredits: credits.reduce((sum, c) => sum + c.amount, 0),
+    };
+  }, [taxCalculation, taxReturn]);
 
   // Check AMT status
   const hasAMT = (taxCalculation?.amt ?? 0) > 0;
@@ -501,6 +677,165 @@ export default function TaxSummarySidebar() {
                 </ResponsiveContainer>
               </div>
             )}
+
+            {/* What-If Scenarios Section */}
+            {taxCalculation && (
+              <div className="bg-gradient-to-r from-violet-50 to-indigo-50 rounded-xl p-5 shadow-sm border border-violet-200">
+                <div className="flex items-center space-x-2 mb-4">
+                  <Sliders className="w-5 h-5 text-violet-600" />
+                  <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wide">What-If Scenarios</h3>
+                </div>
+
+                {/* 401(k) Contribution Slider */}
+                <div className="mb-5">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-medium text-slate-700">401(k) Contribution</span>
+                    <span className="text-sm font-bold text-violet-600">
+                      ${whatIf401k !== null ? whatIf401k.toLocaleString() : current401k.toLocaleString()}
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={K401_LIMIT_2025}
+                    step={500}
+                    value={whatIf401k !== null ? whatIf401k : current401k}
+                    onChange={(e) => setWhatIf401k(Number(e.target.value))}
+                    className="w-full h-2 bg-violet-200 rounded-lg appearance-none cursor-pointer accent-violet-600"
+                  />
+                  <div className="flex justify-between text-xs text-slate-500 mt-1">
+                    <span>$0</span>
+                    <span>${(K401_LIMIT_2025).toLocaleString()} (2025 limit)</span>
+                  </div>
+                  {whatIf401k !== null && whatIf401k !== current401k && (
+                    <div className="mt-2 p-2 bg-white rounded-lg border border-violet-100">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-slate-600">Tax Savings:</span>
+                        <span className="font-bold text-green-600">
+                          ${calculate401kImpact(whatIf401k - current401k)?.taxSavings.toLocaleString() ?? 0}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-sm mt-1">
+                        <span className="text-slate-600">Effective Rate:</span>
+                        <span className="font-bold text-violet-600">
+                          {effectiveRate.toFixed(2)}% → {calculate401kImpact(whatIf401k - current401k)?.newEffectiveRate.toFixed(2) ?? effectiveRate.toFixed(2)}%
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  {whatIf401k !== null && (
+                    <div className="flex gap-2 mt-2">
+                      <button
+                        onClick={() => setWhatIf401k(null)}
+                        className="flex-1 flex items-center justify-center gap-1 py-2 px-3 text-xs font-medium text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
+                      >
+                        <RefreshCcw className="w-3 h-3" />
+                        Reset
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Traditional vs Roth Comparison (IRA) */}
+                <div className="mb-5">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-medium text-slate-700">Traditional IRA Contribution</span>
+                    <span className="text-sm font-bold text-violet-600">
+                      ${whatIfIRA !== null ? whatIfIRA.toLocaleString() : '$0'}
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={IRA_LIMITS_2025.contributionLimit}
+                    step={100}
+                    value={whatIfIRA ?? 0}
+                    onChange={(e) => setWhatIfIRA(Number(e.target.value))}
+                    className="w-full h-2 bg-violet-200 rounded-lg appearance-none cursor-pointer accent-violet-600"
+                  />
+                  <div className="flex justify-between text-xs text-slate-500 mt-1">
+                    <span>$0</span>
+                    <span>${IRA_LIMITS_2025.contributionLimit.toLocaleString()} (2025 limit)</span>
+                  </div>
+                  {whatIfIRA !== null && whatIfIRA > 0 && (
+                    <div className="mt-2 p-2 bg-white rounded-lg border border-violet-100">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-slate-600">Tax Savings (Traditional):</span>
+                        <span className="font-bold text-green-600">
+                          ${calculateIRAImpact(whatIfIRA)?.taxSavings.toLocaleString() ?? 0}
+                        </span>
+                      </div>
+                      <div className="text-xs text-slate-500 mt-2 italic">
+                        * Roth contributions don't give a deduction but grow tax-free. Traditional gives deduction now, taxed on withdrawal.
+                      </div>
+                    </div>
+                  )}
+                  {whatIfIRA !== null && (
+                    <div className="flex gap-2 mt-2">
+                      <button
+                        onClick={() => setWhatIfIRA(null)}
+                        className="flex-1 flex items-center justify-center gap-1 py-2 px-3 text-xs font-medium text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
+                      >
+                        <RefreshCcw className="w-3 h-3" />
+                        Reset
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Estimated Tax Payments (Self-Employed Only) */}
+                {isSelfEmployed && (
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-sm font-medium text-slate-700">Estimated Tax Payments</span>
+                      <span className="text-sm font-bold text-violet-600">
+                        ${((whatIfEstimatedTax !== null ? whatIfEstimatedTax : taxReturn.estimatedTaxPayments) || 0).toLocaleString()}
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={Math.max((taxCalculation.totalTax || 0) * 1.2, 50000)}
+                      step={500}
+                      value={whatIfEstimatedTax !== null ? whatIfEstimatedTax : taxReturn.estimatedTaxPayments || 0}
+                      onChange={(e) => setWhatIfEstimatedTax(Number(e.target.value))}
+                      className="w-full h-2 bg-violet-200 rounded-lg appearance-none cursor-pointer accent-violet-600"
+                    />
+                    <div className="flex justify-between text-xs text-slate-500 mt-1">
+                      <span>$0</span>
+                      <span>${Math.max((taxCalculation.totalTax || 0) * 1.2, 50000).toLocaleString()}</span>
+                    </div>
+                    {whatIfEstimatedTax !== null && (
+                      <div className="mt-2 p-2 bg-white rounded-lg border border-violet-100">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-slate-600">Current Amount Owed:</span>
+                          <span className={`font-bold ${taxCalculation.refundOrAmountOwed > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            ${Math.abs(taxCalculation.refundOrAmountOwed).toLocaleString()}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm mt-1">
+                          <span className="text-slate-600">After Payments:</span>
+                          <span className={`font-bold ${(taxCalculation.refundOrAmountOwed - whatIfEstimatedTax + (taxReturn.estimatedTaxPayments || 0)) > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                            ${Math.abs(taxCalculation.refundOrAmountOwed - whatIfEstimatedTax + (taxReturn.estimatedTaxPayments || 0)).toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                    {whatIfEstimatedTax !== null && (
+                      <div className="flex gap-2 mt-2">
+                        <button
+                          onClick={() => setWhatIfEstimatedTax(null)}
+                          className="flex-1 flex items-center justify-center gap-1 py-2 px-3 text-xs font-medium text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200 transition-colors"
+                        >
+                          <RefreshCcw className="w-3 h-3" />
+                          Reset
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -682,6 +1017,126 @@ export default function TaxSummarySidebar() {
                     />
                   </PieChart>
                 </ResponsiveContainer>
+              </div>
+            )}
+
+            {/* What-If Scenarios Section - Mobile */}
+            {taxCalculation && (
+              <div className="bg-gradient-to-r from-violet-50 to-indigo-50 rounded-xl p-4 shadow-sm border border-violet-200">
+                <div className="flex items-center space-x-2 mb-3">
+                  <Sliders className="w-4 h-4 text-violet-600" />
+                  <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wide">What-If Scenarios</h3>
+                </div>
+
+                {/* 401(k) Contribution Slider - Mobile */}
+                <div className="mb-4">
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span className="text-xs font-medium text-slate-700">401(k) Contribution</span>
+                    <span className="text-xs font-bold text-violet-600">
+                      ${whatIf401k !== null ? whatIf401k.toLocaleString() : current401k.toLocaleString()}
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={K401_LIMIT_2025}
+                    step={500}
+                    value={whatIf401k !== null ? whatIf401k : current401k}
+                    onChange={(e) => setWhatIf401k(Number(e.target.value))}
+                    className="w-full h-1.5 bg-violet-200 rounded-lg appearance-none cursor-pointer accent-violet-600"
+                  />
+                  <div className="flex justify-between text-[10px] text-slate-500 mt-0.5">
+                    <span>$0</span>
+                    <span>${K401_LIMIT_2025.toLocaleString()}</span>
+                  </div>
+                  {whatIf401k !== null && whatIf401k !== current401k && (
+                    <div className="mt-1.5 p-1.5 bg-white rounded border border-violet-100">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-slate-500">Tax Savings:</span>
+                        <span className="font-bold text-green-600">
+                          ${calculate401kImpact(whatIf401k - current401k)?.taxSavings.toLocaleString() ?? 0}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  {whatIf401k !== null && (
+                    <button
+                      onClick={() => setWhatIf401k(null)}
+                      className="mt-1.5 w-full flex items-center justify-center gap-1 py-1.5 text-xs font-medium text-slate-500 bg-slate-100 rounded hover:bg-slate-200 transition-colors"
+                    >
+                      <RefreshCcw className="w-2.5 h-2.5" />
+                      Reset
+                    </button>
+                  )}
+                </div>
+
+                {/* Traditional IRA - Mobile */}
+                <div className="mb-4">
+                  <div className="flex justify-between items-center mb-1.5">
+                    <span className="text-xs font-medium text-slate-700">Traditional IRA</span>
+                    <span className="text-xs font-bold text-violet-600">
+                      ${whatIfIRA !== null ? whatIfIRA.toLocaleString() : '$0'}
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={IRA_LIMITS_2025.contributionLimit}
+                    step={100}
+                    value={whatIfIRA ?? 0}
+                    onChange={(e) => setWhatIfIRA(Number(e.target.value))}
+                    className="w-full h-1.5 bg-violet-200 rounded-lg appearance-none cursor-pointer accent-violet-600"
+                  />
+                  {whatIfIRA !== null && whatIfIRA > 0 && (
+                    <div className="mt-1.5 p-1.5 bg-white rounded border border-violet-100">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-slate-500">Tax Savings:</span>
+                        <span className="font-bold text-green-600">
+                          ${calculateIRAImpact(whatIfIRA)?.taxSavings.toLocaleString() ?? 0}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  {whatIfIRA !== null && (
+                    <button
+                      onClick={() => setWhatIfIRA(null)}
+                      className="mt-1.5 w-full flex items-center justify-center gap-1 py-1.5 text-xs font-medium text-slate-500 bg-slate-100 rounded hover:bg-slate-200 transition-colors"
+                    >
+                      <RefreshCcw className="w-2.5 h-2.5" />
+                      Reset
+                    </button>
+                  )}
+                </div>
+
+                {/* Estimated Tax Payments - Mobile (Self-Employed) */}
+                {isSelfEmployed && (
+                  <div>
+                    <div className="flex justify-between items-center mb-1.5">
+                      <span className="text-xs font-medium text-slate-700">Est. Tax Payments</span>
+                      <span className="text-xs font-bold text-violet-600">
+                        ${((whatIfEstimatedTax !== null ? whatIfEstimatedTax : taxReturn.estimatedTaxPayments) || 0).toLocaleString()}
+                      </span>
+                    </div>
+                    <input
+                      type="range"
+                      min={0}
+                      max={Math.max((taxCalculation.totalTax || 0) * 1.2, 50000)}
+                      step={500}
+                      value={whatIfEstimatedTax !== null ? whatIfEstimatedTax : taxReturn.estimatedTaxPayments || 0}
+                      onChange={(e) => setWhatIfEstimatedTax(Number(e.target.value))}
+                      className="w-full h-1.5 bg-violet-200 rounded-lg appearance-none cursor-pointer accent-violet-600"
+                    />
+                    {whatIfEstimatedTax !== null && (
+                      <button
+                        onClick={() => setWhatIfEstimatedTax(null)}
+                        className="mt-1.5 w-full flex items-center justify-center gap-1 py-1.5 text-xs font-medium text-slate-500 bg-slate-100 rounded hover:bg-slate-200 transition-colors"
+                      >
+                        <RefreshCcw className="w-2.5 h-2.5" />
+                        Reset
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>
