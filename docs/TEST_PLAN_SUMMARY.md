@@ -1,5 +1,7 @@
 # Tax Summary Sidebar Test Plan
 
+> **⚠️ Known Issue:** The vitest configuration has a pre-existing JSX parsing issue - all `.tsx` test files fail with "Unexpected JSX expression" errors. This affects both unit and integration tests. The test cases below are correct but cannot currently run. This needs investigation in the vitest/tsconfig setup.
+
 This document outlines the comprehensive test plan for the Tax Summary Sidebar features (Phases 1-3).
 
 ## Overview
