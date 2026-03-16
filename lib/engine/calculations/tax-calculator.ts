@@ -25,6 +25,11 @@ const TAXABLE_BOX12_CODES = new Set([
   'A', 'B', 'C', 'DD', 'M', 'N', 'Q', 'R', 'T', 'V', 'W', 'Y', 'Z', 'CC'
 ]);
 
+// Helper to check if a value is a finite number
+function isFiniteNumber(value: unknown): value is number {
+  return typeof value === 'number' && Number.isFinite(value);
+}
+
 /**
  * Calculate taxable Box 12 amounts from W-2
  */
@@ -411,6 +416,86 @@ export function calculateSelfEmploymentTax(netProfit: number): number {
   const medicareTax = seTaxableIncome * medicareRate;
 
   return Math.round(ssTax + medicareTax);
+}
+
+/**
+ * Calculate QBI (Qualified Business Income) deduction
+ * Section 199A deduction - 20% of QBI from pass-through entities
+ * Limited by W-2 wages when taxable income exceeds $100K single / $200K married
+ */
+export function calculateQBIDeduction(
+  taxReturn: TaxReturn,
+  taxableIncome: number,
+  filingStatus: FilingStatus
+): number {
+  // QBI thresholds for 2025
+  const singleThreshold = 100000;
+  const marriedThreshold = 200000;
+  const phaseoutSingleMin = 100000;
+  const phaseoutSingleMax = 170000; // SSTB phaseout range
+  const phaseoutMarriedMin = 200000;
+  const phaseoutMarriedMax = 340000; // SSTB phaseout range
+
+  const isMarried = filingStatus === 'Married Filing Jointly' || filingStatus === 'Married Filing Separately';
+  const threshold = isMarried ? marriedThreshold : singleThreshold;
+
+  // Calculate QBI from Schedule C (self-employment)
+  let scheduleCIncome = 0;
+  const scheduleCWages = 0;
+  if (taxReturn.selfEmployment) {
+    const profit = calculateScheduleCProfit(taxReturn.selfEmployment);
+    scheduleCIncome = Math.max(0, profit);
+    // For now, we don't have a dedicated field for W-2 wages paid by the business
+    // In a fuller implementation, Schedule C would have a field for this
+  }
+
+  // Add 1099-NEC income (also flows through as self-employment)
+  let necIncome = 0;
+  if (taxReturn.form1099NEC && taxReturn.form1099NEC.length > 0) {
+    necIncome = taxReturn.form1099NEC.reduce(
+      (sum, nec) => sum + (nec.nonEmployeeCompensation || 0),
+      0
+    );
+  }
+
+  // Add 1099-K income (gross - expenses would need to be tracked)
+  let kIncome = 0;
+  if (taxReturn.form1099K && taxReturn.form1099K.length > 0) {
+    kIncome = taxReturn.form1099K.reduce(
+      (sum, k) => sum + (k.grossAmount || 0),
+      0
+    );
+  }
+
+  // Total QBI from pass-through sources
+  const totalQBI = scheduleCIncome + necIncome + kIncome;
+  if (totalQBI <= 0) return 0;
+
+  // Basic 20% deduction (before limitations)
+  let qbiDeduction = totalQBI * 0.2;
+
+  // Apply W-2 wage limitation if above threshold
+  if (taxableIncome > threshold) {
+    // Simplified wage limitation - assumes no W-2 wages for now
+    // In a full implementation, we'd need to track:
+    // 1. W-2 wages paid by the business (Schedule C line 30)
+    // 2. Unadjusted basis of qualified property (for UBIA)
+    // For now, we'll use a simplified approach
+    const wageLimit = scheduleCWages * 0.5;
+    if (wageLimit > 0) {
+      qbiDeduction = Math.min(qbiDeduction, wageLimit);
+    } else {
+      // No wages = limited QBI deduction above threshold
+      qbiDeduction = 0;
+    }
+  }
+
+  // No capital gains exclusion for QBI
+  // (QBI is calculated from ordinary income, net of capital gains)
+
+  // Return the deduction (cannot exceed taxable income minus capital gains)
+  // Simplified: just return the calculated amount
+  return Math.round(qbiDeduction);
 }
 
 /**
@@ -834,8 +919,18 @@ export function calculateTaxReturn(taxReturn: TaxReturn): TaxCalculation {
   // Calculate taxable income
   const taxableIncome = calculateTaxableIncome(taxReturn);
 
-  // Calculate regular tax
-  const regularTax = calculateRegularTax(taxableIncome, taxReturn.personalInfo.filingStatus);
+  // Calculate QBI deduction (reduces taxable income for regular tax calculation)
+  const qbiDeduction = calculateQBIDeduction(
+    taxReturn,
+    taxableIncome,
+    taxReturn.personalInfo.filingStatus
+  );
+
+  // Taxable income after QBI deduction
+  const taxableIncomeAfterQBI = Math.max(0, taxableIncome - qbiDeduction);
+
+  // Calculate regular tax on reduced taxable income
+  const regularTax = calculateRegularTax(taxableIncomeAfterQBI, taxReturn.personalInfo.filingStatus);
 
   // Calculate AMT
   const amt = calculateAMT(taxReturn, agi, regularTax);
@@ -890,8 +985,36 @@ export function calculateTaxReturn(taxReturn: TaxReturn): TaxCalculation {
     selfEmploymentTax = calculateSelfEmploymentTax(combinedProfit);
   }
 
-  // Additional Medicare Tax
-  const additionalMedicareTax = 0; // TODO: Implement
+  // Additional Medicare Tax (0.9% on wages + SE income above threshold)
+  // Threshold: $200K single, $250K married filing jointly, $125K married filing separately
+  const { additionalMedicareRate, additionalMedicareThreshold } = SELF_EMPLOYMENT_TAX_2025;
+  const filingStatus = taxReturn.personalInfo.filingStatus;
+  
+  // Calculate total Medicare wages from W-2 (employee portion)
+  const totalMedicareWages = taxReturn.w2Income.reduce(
+    (sum, w2) => sum + (isFiniteNumber(w2.medicareWages) ? w2.medicareWages : 0),
+    0
+  );
+  
+  // Net self-employment income (92.35% of profit) counts toward the threshold
+  const seIncomeForMedicare = combinedProfit > 0 ? combinedProfit * 0.9235 : 0;
+  
+  // Total income subject to Additional Medicare Tax
+  const totalMedicareTaxableIncome = totalMedicareWages + seIncomeForMedicare;
+  
+  // Get threshold based on filing status
+  let threshold = additionalMedicareThreshold.single; // default
+  if (filingStatus === 'Married Filing Jointly') {
+    threshold = additionalMedicareThreshold.marriedFilingJointly;
+  } else if (filingStatus === 'Married Filing Separately') {
+    threshold = additionalMedicareThreshold.marriedFilingSeparately;
+  }
+  
+  // Calculate Additional Medicare Tax only on amount exceeding threshold
+  let additionalMedicareTax = 0;
+  if (totalMedicareTaxableIncome > threshold) {
+    additionalMedicareTax = (totalMedicareTaxableIncome - threshold) * additionalMedicareRate;
+  }
 
   // Total tax
   const totalTax = totalTaxAfterCredits + selfEmploymentTax + additionalMedicareTax;
@@ -916,7 +1039,7 @@ export function calculateTaxReturn(taxReturn: TaxReturn): TaxCalculation {
     adjustments,
     agi,
     standardOrItemizedDeduction: deduction,
-    qbiDeduction: 0, // TODO: Implement QBI deduction
+    qbiDeduction,
     taxableIncome,
     regularTax,
     amt,
