@@ -17,7 +17,6 @@ export default defineConfig({
     ],
     environment: 'node',
     globals: true,
-    // Integration tests use @vitest-environment happy-dom docblock per-file
     coverage: {
       reporter: ['text', 'html'],
       include: ['lib/**/*.ts'],
