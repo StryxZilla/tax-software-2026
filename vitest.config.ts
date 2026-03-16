@@ -15,7 +15,7 @@ export default defineConfig({
       'tests/integration/**/*.test.ts',
       'tests/integration/**/*.test.tsx',
     ],
-    environment: 'jsdom',
+    environment: 'node',
     globals: true,
     // Integration tests use @vitest-environment happy-dom docblock per-file
     coverage: {
