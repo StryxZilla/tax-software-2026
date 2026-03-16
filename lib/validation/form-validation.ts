@@ -1,7 +1,7 @@
 // Form Validation Utilities
 // Provides validation functions for all tax forms
 
-import { PersonalInfo, W2Income, Dependent, Interest1099INT, EducationExpenses, TraditionalIRAContribution, RothIRAContribution, Form8606Data, ItemizedDeductions, TaxReturn } from '../../types/tax-types';
+import { PersonalInfo, W2Income, Dependent, Interest1099INT, EducationExpenses, TraditionalIRAContribution, RothIRAContribution, Form8606Data, ItemizedDeductions, TaxReturn, SocialSecurityBenefits } from '../../types/tax-types';
 import { SELF_EMPLOYMENT_TAX_2025 } from '../../data/tax-constants';
 
 export interface ValidationError {
@@ -584,6 +584,51 @@ export function validateRetirement(
       } else if (value < 0) {
         errors.push({ field, message: `${label} cannot be negative` });
       }
+    }
+  }
+
+  return errors;
+}
+
+// Social Security Benefits Validation
+export function validateSocialSecurity(ss: SocialSecurityBenefits, index: number): ValidationError[] {
+  const errors: ValidationError[] = [];
+  const prefix = `Social Security #${index + 1}`;
+
+  const fields: Array<[keyof SocialSecurityBenefits, string, string]> = [
+    ['benefitsReceived', 'ssn-benefits', 'Gross benefits received'],
+    ['taxableBenefits', 'ssn-taxable', 'Taxable benefits'],
+    ['federalTaxWithheld', 'ssn-withheld', 'Federal tax withheld'],
+  ];
+
+  for (const [field, fieldName, label] of fields) {
+    const value = ss[field];
+    if (value !== undefined && value !== null) {
+      if (!isFiniteNumber(value)) {
+        errors.push({ field: fieldName, message: `${prefix}: ${label} must be a valid number` });
+      } else if (value < 0) {
+        errors.push({ field: fieldName, message: `${prefix}: ${label} cannot be negative` });
+      }
+    }
+  }
+
+  // Taxable benefits should not exceed benefits received
+  if (isFiniteNumber(ss.taxableBenefits) && isFiniteNumber(ss.benefitsReceived)) {
+    if (ss.taxableBenefits > ss.benefitsReceived) {
+      errors.push({
+        field: 'ssn-taxable',
+        message: `${prefix}: Taxable benefits cannot exceed gross benefits received`,
+      });
+    }
+  }
+
+  // Federal withholding should not exceed benefits received
+  if (isFiniteNumber(ss.federalTaxWithheld) && isFiniteNumber(ss.benefitsReceived)) {
+    if (ss.federalTaxWithheld > ss.benefitsReceived) {
+      errors.push({
+        field: 'ssn-withheld',
+        message: `${prefix}: Federal tax withheld cannot exceed gross benefits received`,
+      });
     }
   }
 

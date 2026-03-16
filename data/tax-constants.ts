@@ -53,13 +53,12 @@ export const TAX_BRACKETS_2025: Record<FilingStatus, Array<{ rate: number; min: 
 };
 
 // Standard Deductions for 2025
-// Source: IRS Revenue Procedure 2024-40
 export const STANDARD_DEDUCTION_2025: Record<FilingStatus, number> = {
-  'Single': 15750,
-  'Married Filing Jointly': 31500,
-  'Married Filing Separately': 15750,
-  'Head of Household': 23600,
-  'Qualifying Surviving Spouse': 31500,
+  'Single': 15000,
+  'Married Filing Jointly': 30000,
+  'Married Filing Separately': 15000,
+  'Head of Household': 22500,
+  'Qualifying Surviving Spouse': 30000,
 };
 
 // Additional standard deduction for age 65+ or blind (per qualifying condition)
@@ -249,10 +248,7 @@ export const IRA_LIMITS_2025 = {
 };
 
 // SALT (State and Local Tax) Cap
-// SALT (State and Local Tax) Cap for 2025
-// Note: The "One Big Beautiful Bill" temporarily increased the SALT cap to $40,000 for 2025-2028
-// This is a temporary reversal of the $10,000 cap from TCJA
-export const SALT_CAP_2025 = 40000;
+export const SALT_CAP_2025 = 10000;
 
 // Medical Expense AGI Threshold
 export const MEDICAL_EXPENSE_AGI_THRESHOLD = 0.075; // 7.5%
@@ -311,187 +307,52 @@ export const QBI_DEDUCTION_2025 = {
   },
 };
 
-// Child and Dependent Care Credit for 2025 (Form 2441)
-export const CHILD_AND_DEPENDENT_CARE_CREDIT_2025 = {
-  // Credit percentage based on AGI
-  creditPercentages: [
-    { maxAGI: 15000, rate: 0.35 },
-    { maxAGI: 17000, rate: 0.34 },
-    { maxAGI: 19000, rate: 0.33 },
-    { maxAGI: 21000, rate: 0.32 },
-    { maxAGI: 23000, rate: 0.31 },
-    { maxAGI: 25000, rate: 0.30 },
-    { maxAGI: 27000, rate: 0.29 },
-    { maxAGI: 29000, rate: 0.28 },
-    { maxAGI: 31000, rate: 0.27 },
-    { maxAGI: 33000, rate: 0.26 },
-    { maxAGI: 35000, rate: 0.25 },
-    { maxAGI: 37000, rate: 0.24 },
-    { maxAGI: 39000, rate: 0.23 },
-    { maxAGI: 41000, rate: 0.22 },
-    { maxAGI: 43000, rate: 0.21 },
-    { maxAGI: 45000, rate: 0.20 },
-    { maxAGI: 47000, rate: 0.19 },
-    { maxAGI: 49000, rate: 0.18 },
-    { maxAGI: 51000, rate: 0.17 },
-    { maxAGI: 53000, rate: 0.16 },
-    { maxAGI: 55000, rate: 0.15 },
-    { maxAGI: 57000, rate: 0.14 },
-    { maxAGI: 59000, rate: 0.13 },
-    { maxAGI: 61000, rate: 0.12 },
-    { maxAGI: 63000, rate: 0.11 },
-    { maxAGI: 65000, rate: 0.10 },
-    { maxAGI: 67000, rate: 0.09 },
-    { maxAGI: 69000, rate: 0.08 },
-    { maxAGI: 71000, rate: 0.07 },
-    { maxAGI: 73000, rate: 0.06 },
-    { maxAGI: 75000, rate: 0.05 },
-    { maxAGI: Infinity, rate: 0.05 }, // Floor at 5%
-  ],
-  // Maximum eligible care expenses
-  maxCareExpenses: {
-    oneQualifyingPerson: 3000,
-    twoOrMoreQualifyingPersons: 6000,
-  },
-  // Earned income limit (can't claim more than your earned income)
-  earnedIncomeLimit: true,
-};
-
-// Electric Vehicle Credit for 2025 (Clean Vehicle Credit - Form 8936)
-export const EV_CREDIT_2025 = {
-  // New clean vehicles
-  newVehicle: {
-    maxCredit: 7500,
-    minBatteryCapacity: 7, // kWh for base credit
-    additionalKwhFor7500: 13, // Need at least 7 + 13 = 20 kWh for max credit
-    batteryCapacityCredit: 417, // Per kWh above threshold (max $7,500)
-  },
-  // Used clean vehicles (added by Inflation Reduction Act)
-  usedVehicle: {
-    maxCredit: 4000,
-    maxVehiclePrice: 25000,
-    minBatteryCapacity: 7,
-  },
-  // Income phase-out (starts reducing credit at these levels)
-  incomePhaseout: {
-    single: {
-      start: 150000,
-      end: 180000,
+// Schedule 1-A Deductions (2025-2028) - "One Big Beautiful Bill"
+// Source: IRS Notice and Schedule 1-A Instructions
+export const SCHEDULE_1_A_2025 = {
+  // Tip Income Deduction (Part II)
+  tipDeduction: {
+    maxDeduction: 25000,                    // Maximum deduction
+    phaseoutStart: {
+      single: 150000,
+      marriedFilingJointly: 300000,
     },
-    marriedFilingJointly: {
-      start: 300000,
-      end: 360000,
-    },
-    headOfHousehold: {
-      start: 225000,
-      end: 270000,
+    phaseoutEnd: {
+      single: 165000,
+      marriedFilingJointly: 330000,
     },
   },
-  // Qualifying manufacturers (must meet IRS requirements)
-  // This list changes, but here are major ones as of 2025
-  qualifyingManufacturers: [
-    'Tesla',
-    'Rivian',
-    'Ford',
-    'Chevrolet',
-    'GMC',
-    'Cadillac',
-    'Jeep',
-    'Hyundai',
-    'Kia',
-    'BMW',
-    'Mercedes-Benz',
-    'Volkswagen',
-    'Audi',
-    'Volvo',
-    'Porsche',
-    'Toyota',
-    'Honda',
-    'Nissan',
-    'Lexus',
-    'Acura',
-    'Mazda',
-    'Subaru',
-  ],
-};
-
-// Residential Energy Credit for 2025 (Form 3468)
-// Note: The energy efficient home improvements credit
-export const RESIDENTIAL_ENERGY_CREDIT_2025 = {
-  improvements: {
-    // Solar electric (30% through 2032, then phases down)
-    solarElectric: {
-      rate: 0.30,
-      maxCredit: Infinity,
-      throughYear: 2032,
-      description: 'Solar electric property (solar panels)',
+  // Overtime Pay Deduction (Part III)
+  overtimeDeduction: {
+    maxDeduction: 12500,                    // Per person ($25,000 married filing jointly)
+    maxDeductionMarried: 25000,
+    phaseoutStart: {
+      single: 150000,
+      marriedFilingJointly: 300000,
     },
-    // Solar water heating (30% through 2032)
-    solarWaterHeating: {
-      rate: 0.30,
-      maxCredit: Infinity,
-      throughYear: 2032,
-      description: 'Solar water heating property',
-    },
-    // Wind energy (30% through 2032)
-    windEnergy: {
-      rate: 0.30,
-      maxCredit: Infinity,
-      throughYear: 2032,
-      description: 'Small wind energy property',
-    },
-    // Geothermal heat pumps (30% through 2032)
-    geothermalHeatPump: {
-      rate: 0.30,
-      maxCredit: Infinity,
-      throughYear: 2032,
-      description: 'Geothermal heat pump property',
-    },
-    // Fuel cells (30% through 2032, with per-watt limits)
-    fuelCell: {
-      rate: 0.30,
-      maxCreditPerHalfWatt: 1000, // $1,000 per 0.5 kW
-      description: 'Fuel cell property',
-    },
-    // Heat pumps - NEW category (30% for 2022-2032)
-    heatPump: {
-      rate: 0.30,
-      maxCredit: 2000,
-      throughYear: 2032,
-      description: 'Air source heat pump or heat pump water heater',
-    },
-    // Biomass stoves (30% for 2022-2032)
-    biomassStove: {
-      rate: 0.30,
-      maxCredit: 2000,
-      throughYear: 2032,
-      description: 'Biomass stove',
-    },
-    // Windows, doors, skylights (10%)
-    windowsDoors: {
-      rate: 0.10,
-      maxCredit: 500, // $500 per window, $250 per door, max $500 total
-      description: 'Windows, doors, skylights',
-    },
-    // Roofing (10%)
-    roofing: {
-      rate: 0.10,
-      maxCredit: 500,
-      description: 'Metal and asphalt roofs with appropriate pigmented coatings',
-    },
-    // Insulation (10%)
-    insulation: {
-      rate: 0.10,
-      maxCredit: 500,
-      description: 'Insulation materials',
-    },
-    // Air sealing and duct sealing (10%)
-    sealing: {
-      rate: 0.10,
-      maxCredit: 500,
-      description: 'Air sealing and duct sealing',
+    phaseoutEnd: {
+      single: 165000,
+      marriedFilingJointly: 330000,
     },
   },
-  // Annual credit cap (starts 2023)
-  annualCap: 12000, // For improvements made after 2022
+  // Car Loan Interest Deduction (Part IV)
+  carLoanInterest: {
+    // No explicit phaseout mentioned in IRS guidance
+    // Interest on qualified vehicle loans for personal use
+  },
+  // Senior Deduction (Part V) - Enhanced deduction for seniors 65+
+  seniorDeduction: {
+    maxDeduction: 6000,                     // Per person ($12,000 married filing jointly)
+    maxDeductionMarried: 12000,
+    phaseoutStart: {
+      single: 75000,
+      marriedFilingJointly: 150000,
+    },
+    phaseoutEnd: {
+      single: 100000,
+      marriedFilingJointly: 200000,
+    },
+    // Born before Jan 2, 1961 to qualify (age 65+ in 2026)
+    birthDateThreshold: '1961-01-01',
+  },
 };

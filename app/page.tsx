@@ -19,8 +19,10 @@ import RetirementDistributionForm from '../components/forms/RetirementDistributi
 import RentalPropertyForm from '../components/forms/RentalPropertyForm'
 import RetirementForm from '../components/forms/RetirementForm'
 import AboveTheLineDeductionsForm from '../components/forms/AboveTheLineDeductionsForm'
+import SocialSecurityForm from '../components/forms/SocialSecurityForm'
 import ItemizedDeductionsForm from '../components/forms/ItemizedDeductionsForm'
 import CreditsForm from '../components/forms/CreditsForm'
+import Schedule1ADeductionsForm from '../components/forms/Schedule1ADeductionsForm'
 import TaxSummarySidebar from '../components/review/TaxSummarySidebar'
 import PdfDownloadButton from '../components/review/PdfDownloadButton'
 import { useTaxReturn, useAuthUser } from '../lib/context/TaxReturnContext'
@@ -44,10 +46,12 @@ const STEP_ORDER: WizardStep[] = [
   'income-1099-nec',
   'income-1099-k',
   'income-1099-r',
+  'income-social-security',
   'income-rental',
   'retirement-accounts',
   'above-the-line',
   'deductions',
+  'deductions-schedule-1a',
   'credits',
   'review',
 ]
@@ -301,6 +305,27 @@ function WizardStepContent() {
         </>
       )
 
+    case 'income-social-security':
+      return (
+        <>
+          <SocialSecurityForm
+            values={taxReturn.socialSecurity}
+            onChange={(socialSecurity) => {
+              updateTaxReturn({ socialSecurity })
+              recalculateTaxes()
+            }}
+            onValidationChange={setIsCurrentFormValid}
+          />
+          <FormNavigation
+            currentStep={currentStep}
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            onSkip={handleSkip}
+            canProceed={isCurrentFormValid}
+          />
+        </>
+      )
+
     case 'income-rental':
       return (
         <>
@@ -384,6 +409,32 @@ function WizardStepContent() {
             onNext={handleNext}
             onPrevious={handlePrevious}
             onSkip={handleSkip}
+          />
+        </>
+      )
+    }
+
+    case 'deductions-schedule-1a': {
+      const agi = calculateAGI(taxReturn)
+      return (
+        <>
+          <Schedule1ADeductionsForm
+            schedule1A={taxReturn.schedule1A}
+            onChange={(schedule1A) => {
+              updateTaxReturn({ schedule1A })
+              recalculateTaxes()
+            }}
+            age={taxReturn.personalInfo.age}
+            filingStatus={taxReturn.personalInfo.filingStatus}
+            agi={agi}
+            onValidationChange={setIsCurrentFormValid}
+          />
+          <FormNavigation
+            currentStep={currentStep}
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            onSkip={handleSkip}
+            canProceed={isCurrentFormValid}
           />
         </>
       )

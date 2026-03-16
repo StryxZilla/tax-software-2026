@@ -11,11 +11,13 @@ const steps: Array<{ id: WizardStep; label: string; shortLabel?: string; descrip
   { id: 'income-interest',        label: 'Interest Income',            shortLabel: 'Interest',   description: '1099-INT from banks & savings' },
   { id: 'income-capital-gains',   label: 'Capital Gains',              shortLabel: 'Cap. Gains', description: 'Schedule D — stocks, crypto' },
   { id: 'income-self-employment', label: 'Self-Employment',            shortLabel: 'Self-Emp.',  description: 'Schedule C — freelance & business' },
+  { id: 'income-1099-r',          label: 'Retirement Distributions',  shortLabel: '1099-R',     description: 'Pensions, annuities, 1099-R' },
+  { id: 'income-social-security', label: 'Social Security Benefits',  shortLabel: 'SS Benefits', description: 'SSA-1099 — benefits & withholding' },
   { id: 'income-rental',          label: 'Rental Property',            shortLabel: 'Rental',     description: 'Schedule E — rental income' },
   { id: 'retirement-accounts',    label: 'Retirement Accounts',        shortLabel: 'Retire.',    description: 'IRA contributions & distributions' },
-  { id: 'deductions',             label: 'Itemized Deductions',        shortLabel: 'Deduct.',    description: 'Schedule A — mortgage, charity' },
-  { id: 'credits',                label: 'Tax Credits',                shortLabel: 'Credits',    description: 'Child credit, education & more' },
-  { id: 'review',                 label: 'Review & Download',          shortLabel: 'Review',     description: 'Summary, PDF & final review' },
+  { id: 'deductions',            label: 'Itemized Deductions',        shortLabel: 'Deduct.',    description: 'Schedule A — mortgage, charity' },
+  { id: 'credits',               label: 'Tax Credits',                shortLabel: 'Credits',    description: 'Child credit, education & more' },
+  { id: 'review',                label: 'Review & Download',          shortLabel: 'Review',     description: 'Summary, PDF & final review' },
 ];
 
 interface WizardNavigationProps {

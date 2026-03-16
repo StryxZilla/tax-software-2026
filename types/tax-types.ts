@@ -249,6 +249,17 @@ export interface AboveTheLineDeductions {
   alimonyPaid: number;
 }
 
+// Schedule 1-A Deductions (2025-2028) - "One Big Beautiful Bill"
+export interface Schedule1ADeductions {
+  tipIncome: number;
+  tipExpenses: number;
+  isTipDeductionEligible: boolean;
+  overtimeHours: number;
+  overtimePay: number;
+  carLoanInterest: number;
+  isSeniorDeductionEligible: boolean;
+}
+
 // Credits
 export interface TaxCredits {
   childTaxCredit: number;
@@ -350,6 +361,7 @@ export interface TaxReturn {
   hsaData?: HSAData;
   itemizedDeductions?: ItemizedDeductions;
   aboveTheLineDeductions: AboveTheLineDeductionsData;
+  schedule1A?: Schedule1ADeductions;
   educationExpenses: EducationExpenses[];
   dependentCareExpenses?: DependentCareExpenses[];
   electricVehicleCredit?: ElectricVehicleCredit;
@@ -380,10 +392,12 @@ export const STEP_META: StepMeta[] = [
   { id: 'income-1099-nec',       requirement: 'optional' },
   { id: 'income-1099-k',         requirement: 'optional' },
   { id: 'income-1099-r',         requirement: 'optional' },
+  { id: 'income-social-security', requirement: 'optional' },
   { id: 'income-rental',          requirement: 'optional' },
   { id: 'retirement-accounts',    requirement: 'optional' },
   { id: 'above-the-line',        requirement: 'optional' },
   { id: 'deductions',             requirement: 'optional' },
+  { id: 'deductions-schedule-1a', requirement: 'optional' },
   { id: 'credits',                requirement: 'optional' },
   { id: 'review',                 requirement: 'required' },
 ];
@@ -406,10 +420,12 @@ export type WizardStep =
   | 'income-1099-nec'
   | 'income-1099-k'
   | 'income-1099-r'
+  | 'income-social-security'
   | 'income-rental'
   | 'retirement-accounts'
   | 'above-the-line'
   | 'deductions'
+  | 'deductions-schedule-1a'
   | 'credits'
   | 'review'
   | 'pdf-generation';

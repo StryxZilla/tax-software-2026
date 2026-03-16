@@ -9,43 +9,13 @@ import {
   AMT_2025,
   CHILD_TAX_CREDIT_2025,
   EDUCATION_CREDITS_2025,
-  EITC_2025,
   SALT_CAP_2025,
   MEDICAL_EXPENSE_AGI_THRESHOLD,
   CAPITAL_LOSS_LIMIT,
   MEALS_DEDUCTION_RATE,
   SAVERS_CREDIT_2025,
-  CHILD_AND_DEPENDENT_CARE_CREDIT_2025,
-  EV_CREDIT_2025,
-  RESIDENTIAL_ENERGY_CREDIT_2025,
+  SCHEDULE_1_A_2025,
 } from '../../../data/tax-constants';
-
-// Box 12 codes that are taxable and should be added to wages
-const TAXABLE_BOX12_CODES = new Set([
-  'A', 'B', 'C', 'DD', 'M', 'N', 'Q', 'R', 'T', 'V', 'W', 'Y', 'Z', 'CC'
-]);
-
-// Helper to check if a value is a finite number
-function isFiniteNumber(value: unknown): value is number {
-  return typeof value === 'number' && Number.isFinite(value);
-}
-
-/**
- * Calculate taxable Box 12 amounts from W-2
- */
-export function calculateTaxableBox12(w2Income: TaxReturn['w2Income']): number {
-  let total = 0;
-  w2Income.forEach(w2 => {
-    if (w2.box12) {
-      w2.box12.forEach(entry => {
-        if (entry.code && TAXABLE_BOX12_CODES.has(entry.code) && entry.amount > 0) {
-          total += entry.amount;
-        }
-      });
-    }
-  });
-  return total;
-}
 
 /**
  * Calculate total income from all sources
@@ -53,32 +23,24 @@ export function calculateTaxableBox12(w2Income: TaxReturn['w2Income']): number {
 export function calculateTotalIncome(taxReturn: TaxReturn): number {
   let total = 0;
 
-  // W-2 wages (including taxable Box 12 amounts)
-  const taxableBox12 = calculateTaxableBox12(taxReturn.w2Income);
+  // W-2 wages
   taxReturn.w2Income.forEach(w2 => {
-    total += w2.wages + taxableBox12;
+    total += w2.wages;
   });
 
-  // Interest income (Box 1 from 1099-INT)
+  // Interest income
   taxReturn.interest.forEach(int => {
-    total += int.amount || 0;
-    // Tax-exempt interest (Box 4) doesn't add to taxable income but affects AMT
+    total += int.amount;
   });
 
   // Dividend income
   taxReturn.dividends.forEach(div => {
-    total += div.ordinaryDividends || 0;
-    // Qualified dividends are included in ordinary but taxed at lower rate
-    // Capital gain distributions (Box 2) go to Schedule D
-    // Exempt interest dividends (Box 3) are tax-exempt
+    total += div.ordinaryDividends;
   });
 
-  // Add capital gain distributions from 1099-DIV to total income
-  const dividendCapitalGains = taxReturn.dividends.reduce((sum, d) => sum + (d.capitalGainDistributions || 0), 0);
-  
-  // Capital gains (short-term and long-term) - includes capital gain distributions
+  // Capital gains (short-term and long-term)
   const { shortTermGains, longTermGains } = calculateCapitalGains(taxReturn.capitalGains);
-  total += shortTermGains + longTermGains + dividendCapitalGains;
+  total += shortTermGains + longTermGains;
 
   // Self-employment income
   if (taxReturn.selfEmployment) {
@@ -86,23 +48,15 @@ export function calculateTotalIncome(taxReturn: TaxReturn): number {
     total += Math.max(0, netProfit);
   }
 
-  // 1099-NEC income (non-employee compensation - goes to Schedule C)
-  if (taxReturn.form1099NEC && taxReturn.form1099NEC.length > 0) {
-    const total1099NEC = taxReturn.form1099NEC.reduce((sum, nec) => sum + (nec.nonEmployeeCompensation || 0), 0);
-    total += total1099NEC;
-  }
-
-  // 1099-K income (payment apps like Venmo, PayPal)
-  // Note: This is gross - expenses reduce taxable income
-  if (taxReturn.form1099K && taxReturn.form1099K.length > 0) {
-    const total1099K = taxReturn.form1099K.reduce((sum, k) => sum + (k.grossAmount || 0), 0);
-    total += total1099K;
-  }
-
   // Rental income
   taxReturn.rentalProperties.forEach(rental => {
     const netRentalIncome = calculateRentalIncome(rental);
     total += netRentalIncome;
+  });
+
+  // Social Security benefits (taxable portion)
+  taxReturn.socialSecurity.forEach(ss => {
+    total += ss.taxableBenefits;
   });
 
   return Math.round(total);
@@ -117,20 +71,8 @@ export function calculateAdjustments(taxReturn: TaxReturn): number {
   // Self-employment tax deduction (50% of SE tax)
   if (taxReturn.selfEmployment) {
     const seProfit = calculateScheduleCProfit(taxReturn.selfEmployment);
-    let total1099NEC = 0;
-    if (taxReturn.form1099NEC && taxReturn.form1099NEC.length > 0) {
-      total1099NEC = taxReturn.form1099NEC.reduce((sum, nec) => sum + (nec.nonEmployeeCompensation || 0), 0);
-    }
-    const combinedProfit = seProfit + total1099NEC;
-    if (combinedProfit > 400) {
-      const seTax = calculateSelfEmploymentTax(combinedProfit);
-      adjustments += seTax * 0.5;
-    }
-  } else if (taxReturn.form1099NEC && taxReturn.form1099NEC.length > 0) {
-    // No Schedule C but have 1099-NEC
-    const total1099NEC = taxReturn.form1099NEC.reduce((sum, nec) => sum + (nec.nonEmployeeCompensation || 0), 0);
-    if (total1099NEC > 400) {
-      const seTax = calculateSelfEmploymentTax(total1099NEC);
+    if (seProfit > 400) {
+      const seTax = calculateSelfEmploymentTax(seProfit);
       adjustments += seTax * 0.5;
     }
   }
@@ -145,26 +87,11 @@ export function calculateAdjustments(taxReturn: TaxReturn): number {
     adjustments += taxReturn.traditionalIRAContribution.amount;
   }
 
-  // HSA deduction (from above-the-line form) - with null safety
-  adjustments += taxReturn.aboveTheLineDeductions?.hsaContributions ?? 0;
-  
-  // Employer HSA contributions (already taxed, not deductible by employee)
-  // (taxReturn.aboveTheLineDeductions.hsaEmployerContributions is not deducted)
-
-  // Self-employed health insurance
-  adjustments += taxReturn.aboveTheLineDeductions?.selfEmployedHealthInsurance ?? taxReturn.aboveTheLineDeductions?.selfEmploymentHealthInsurance ?? 0;
-
-  // SEP IRA / SIMPLE IRA
-  adjustments += taxReturn.aboveTheLineDeductions?.sepIRA ?? 0;
-
-  // Alimony paid (pre-2019 divorce agreements only)
-  adjustments += taxReturn.aboveTheLineDeductions?.alimonyPaid ?? 0;
-
   // Student loan interest
-  adjustments += taxReturn.aboveTheLineDeductions?.studentLoanInterest ?? 0;
+  adjustments += taxReturn.aboveTheLineDeductions.studentLoanInterest;
 
   // Educator expenses
-  adjustments += taxReturn.aboveTheLineDeductions?.educatorExpenses ?? 0;
+  adjustments += taxReturn.aboveTheLineDeductions.educatorExpenses;
 
   return Math.round(adjustments);
 }
@@ -419,86 +346,6 @@ export function calculateSelfEmploymentTax(netProfit: number): number {
 }
 
 /**
- * Calculate QBI (Qualified Business Income) deduction
- * Section 199A deduction - 20% of QBI from pass-through entities
- * Limited by W-2 wages when taxable income exceeds $100K single / $200K married
- */
-export function calculateQBIDeduction(
-  taxReturn: TaxReturn,
-  taxableIncome: number,
-  filingStatus: FilingStatus
-): number {
-  // QBI thresholds for 2025
-  const singleThreshold = 100000;
-  const marriedThreshold = 200000;
-  const phaseoutSingleMin = 100000;
-  const phaseoutSingleMax = 170000; // SSTB phaseout range
-  const phaseoutMarriedMin = 200000;
-  const phaseoutMarriedMax = 340000; // SSTB phaseout range
-
-  const isMarried = filingStatus === 'Married Filing Jointly' || filingStatus === 'Married Filing Separately';
-  const threshold = isMarried ? marriedThreshold : singleThreshold;
-
-  // Calculate QBI from Schedule C (self-employment)
-  let scheduleCIncome = 0;
-  const scheduleCWages = 0;
-  if (taxReturn.selfEmployment) {
-    const profit = calculateScheduleCProfit(taxReturn.selfEmployment);
-    scheduleCIncome = Math.max(0, profit);
-    // For now, we don't have a dedicated field for W-2 wages paid by the business
-    // In a fuller implementation, Schedule C would have a field for this
-  }
-
-  // Add 1099-NEC income (also flows through as self-employment)
-  let necIncome = 0;
-  if (taxReturn.form1099NEC && taxReturn.form1099NEC.length > 0) {
-    necIncome = taxReturn.form1099NEC.reduce(
-      (sum, nec) => sum + (nec.nonEmployeeCompensation || 0),
-      0
-    );
-  }
-
-  // Add 1099-K income (gross - expenses would need to be tracked)
-  let kIncome = 0;
-  if (taxReturn.form1099K && taxReturn.form1099K.length > 0) {
-    kIncome = taxReturn.form1099K.reduce(
-      (sum, k) => sum + (k.grossAmount || 0),
-      0
-    );
-  }
-
-  // Total QBI from pass-through sources
-  const totalQBI = scheduleCIncome + necIncome + kIncome;
-  if (totalQBI <= 0) return 0;
-
-  // Basic 20% deduction (before limitations)
-  let qbiDeduction = totalQBI * 0.2;
-
-  // Apply W-2 wage limitation if above threshold
-  if (taxableIncome > threshold) {
-    // Simplified wage limitation - assumes no W-2 wages for now
-    // In a full implementation, we'd need to track:
-    // 1. W-2 wages paid by the business (Schedule C line 30)
-    // 2. Unadjusted basis of qualified property (for UBIA)
-    // For now, we'll use a simplified approach
-    const wageLimit = scheduleCWages * 0.5;
-    if (wageLimit > 0) {
-      qbiDeduction = Math.min(qbiDeduction, wageLimit);
-    } else {
-      // No wages = limited QBI deduction above threshold
-      qbiDeduction = 0;
-    }
-  }
-
-  // No capital gains exclusion for QBI
-  // (QBI is calculated from ordinary income, net of capital gains)
-
-  // Return the deduction (cannot exceed taxable income minus capital gains)
-  // Simplified: just return the calculated amount
-  return Math.round(qbiDeduction);
-}
-
-/**
  * Calculate rental income
  */
 export function calculateRentalIncome(rental: any): number {
@@ -593,19 +440,13 @@ export function calculateSaversCredit(taxReturn: TaxReturn, agi: number): number
   // Must be 18+, not a student, not claimed as dependent (simplified: use age >= 18)
   if (taxReturn.personalInfo.age < 18) return 0;
 
-  // Get eligible contributions (Traditional IRA + Roth IRA + 401(k))
-  // Note: Both deductible and non-deductible Traditional IRA contributions count for Saver's Credit
+  // Get eligible contributions (Traditional IRA + Roth IRA)
   let contributions = 0;
   if (taxReturn.traditionalIRAContribution) {
     contributions += taxReturn.traditionalIRAContribution.amount;
   }
   if (taxReturn.rothIRAContribution) {
     contributions += taxReturn.rothIRAContribution.amount;
-  }
-  // Add 401(k) contributions (from W-2 Box 12, codes EE, H, FF)
-  // These are eligible for the Saver's Credit
-  if (taxReturn.k401Contributions) {
-    contributions += taxReturn.k401Contributions;
   }
 
   if (contributions <= 0) return 0;
@@ -632,262 +473,6 @@ export function calculateSaversCredit(taxReturn: TaxReturn, agi: number): number
   if (rate === 0) return 0;
 
   return Math.round(eligibleContributions * rate);
-}
-
-/**
- * Calculate Earned Income Tax Credit (EITC)
- * Form 8862 - For low to moderate income workers
- */
-export function calculateEITC(taxReturn: TaxReturn, agi: number): number {
-  const { filingStatus, age, spouseInfo } = taxReturn.personalInfo;
-  const { dependents } = taxReturn;
-
-  // Determine number of qualifying children
-  // For EITC, we need children who meet the relationship, age, residency, and joint return tests
-  const eicQualifyingChildren = dependents.filter(d => {
-    // Simplified: use the CTC qualification as a proxy for EIC qualification
-    // In reality, EIC has different (stricter) requirements
-    return d.isQualifyingChildForCTC;
-  });
-  
-  const numQualifyingChildren = eicQualifyingChildren.length;
-
-  // Investment income limit ($11,000 for 2025)
-  // Simplified: check if any investment income exists
-  const totalInvestmentIncome = 
-    taxReturn.interest.reduce((sum, i) => sum + i.amount, 0) +
-    taxReturn.dividends.reduce((sum, d) => sum + d.ordinaryDividends, 0);
-  
-  if (totalInvestmentIncome > 11000) {
-    return 0; // Exceeds investment income limit
-  }
-
-  // Must have earned income
-  const earnedIncome = calculateTotalIncome(taxReturn);
-  if (earnedIncome <= 0) return 0;
-
-  // Get EITC parameters based on number of children
-  const maxCredit = EITC_2025.maxCredit[numQualifyingChildren as keyof typeof EITC_2025.maxCredit] || EITC_2025.maxCredit[0];
-  
-  // Determine filing status for phaseout
-  const isMarried = filingStatus === 'Married Filing Jointly';
-  const isSingle = filingStatus === 'Single' || filingStatus === 'Head of Household';
-  
-  // Get phaseout thresholds
-  const phaseoutStart = isMarried 
-    ? EITC_2025.phaseoutStart.married[numQualifyingChildren as keyof typeof EITC_2025.phaseoutStart.married]
-    : EITC_2025.phaseoutStart.single[numQualifyingChildren as keyof typeof EITC_2025.phaseoutStart.single];
-    
-  const phaseoutEnd = isMarried
-    ? EITC_2025.phaseoutEnd.married[numQualifyingChildren as keyof typeof EITC_2025.phaseoutEnd.married]
-    : EITC_2025.phaseoutEnd.single[numQualifyingChildren as keyof typeof EITC_2025.phaseoutEnd.single];
-
-  // If below phaseout start, full credit
-  if (agi <= phaseoutStart) {
-    return maxCredit;
-  }
-
-  // If above phaseout end, no credit
-  if (agi >= phaseoutEnd) {
-    return 0;
-  }
-
-  // Calculate phased credit
-  const phaseoutRange = phaseoutEnd - phaseoutStart;
-  const amountOverStart = agi - phaseoutStart;
-  const phaseoutPercent = amountOverStart / phaseoutRange;
-  
-  return Math.round(maxCredit * (1 - phaseoutPercent));
-}
-
-/**
- * Calculate Child and Dependent Care Credit
- * Form 2441 - For daycare and care expenses
- */
-export function calculateChildAndDependentCareCredit(taxReturn: TaxReturn, agi: number): number {
-  const { dependentCareExpenses, personalInfo } = taxReturn;
-  
-  if (!dependentCareExpenses || dependentCareExpenses.length === 0) return 0;
-
-  // Count qualifying persons (children under 13 or dependents who can't care for themselves)
-  // Simplified: count dependents under 13 for now
-  const qualifyingPersons = taxReturn.dependents.filter(d => {
-    const birthYear = new Date(d.birthDate).getFullYear();
-    const age = 2025 - birthYear;
-    return age < 13;
-  }).length;
-
-  if (qualifyingPersons === 0) return 0;
-
-  // Calculate total eligible expenses
-  const totalExpenses = dependentCareExpenses.reduce((sum, expense) => sum + expense.amount, 0);
-  
-  // Apply expense limit
-  const maxExpenses = qualifyingPersons >= 2
-    ? CHILD_AND_DEPENDENT_CARE_CREDIT_2025.maxCareExpenses.twoOrMoreQualifyingPersons
-    : CHILD_AND_DEPENDENT_CARE_CREDIT_2025.maxCareExpenses.oneQualifyingPerson;
-  
-  const eligibleExpenses = Math.min(totalExpenses, maxExpenses);
-
-  // Get earned income for the credit calculation
-  // Can't claim more than the lower earner's income if married filing separately
-  const earnedIncome = calculateTotalIncome(taxReturn);
-  const limitedExpenses = Math.min(eligibleExpenses, earnedIncome);
-
-  // Get credit percentage based on AGI
-  const { creditPercentages } = CHILD_AND_DEPENDENT_CARE_CREDIT_2025;
-  let creditRate = 0.20; // Default fallback rate
-  
-  for (const bracket of creditPercentages) {
-    if (agi <= bracket.maxAGI) {
-      creditRate = bracket.rate;
-      break;
-    }
-  }
-
-  return Math.round(limitedExpenses * creditRate);
-}
-
-/**
- * Calculate Electric Vehicle Credit
- * Form 8936 - Clean Vehicle Credit
- */
-export function calculateElectricVehicleCredit(taxReturn: TaxReturn, agi: number): number {
-  const evCredit = taxReturn.electricVehicleCredit;
-  if (!evCredit) return 0;
-
-  const { filingStatus } = taxReturn.personalInfo;
-  const { newVehicle, usedVehicle, incomePhaseout, qualifyingManufacturers } = EV_CREDIT_2025;
-
-  // Check if manufacturer is qualified
-  const isQualifiedManufacturer = qualifyingManufacturers.some(
-    m => evCredit.manufacturerName.toLowerCase().includes(m.toLowerCase()) ||
-         evCredit.vehicleMake.toLowerCase().includes(m.toLowerCase())
-  );
-  
-  if (!isQualifiedManufacturer) {
-    // Could still be eligible but need manual verification
-    // For simplicity, we'll still allow the credit
-  }
-
-  let credit = 0;
-
-  if (evCredit.vehicleType === 'new') {
-    // New vehicle credit calculation
-    // Base credit: $3,500 if battery >= 7 kWh
-    credit = 3500;
-    
-    // Additional credit based on battery capacity
-    // Need at least 20 kWh for maximum $7,500
-    if (evCredit.batteryCapacity >= 20) {
-      credit = newVehicle.maxCredit;
-    } else if (evCredit.batteryCapacity >= 7) {
-      // $417 per kWh above 7 kWh
-      const additionalKwh = evCredit.batteryCapacity - 7;
-      credit = Math.min(7500, 3500 + Math.round(additionalKwh * 417));
-    }
-
-    // Check income phaseout
-    const phaseout = incomePhaseout[
-      filingStatus === 'Married Filing Jointly' ? 'marriedFilingJointly' :
-      filingStatus === 'Head of Household' ? 'headOfHousehold' : 'single'
-    ];
-    
-    if (agi > phaseout.start) {
-      if (agi >= phaseout.end) {
-        return 0; // Fully phased out
-      }
-      const phaseoutPercent = (agi - phaseout.start) / (phaseout.end - phaseout.start);
-      credit = Math.round(credit * (1 - phaseoutPercent));
-    }
-  } else {
-    // Used vehicle credit (max $4,000 or 30% of price, whichever is less)
-    if (evCredit.purchasePrice > usedVehicle.maxVehiclePrice) {
-      return 0; // Used vehicles over $25,000 don't qualify
-    }
-    credit = Math.min(usedVehicle.maxCredit, Math.round(evCredit.purchasePrice * 0.30));
-  }
-
-  // Check other eligibility requirements
-  if (evCredit.hasBeenUsedBefore) {
-    // Used vehicles have separate rules - if it's actually used, only certain conditions qualify
-    if (evCredit.vehicleType === 'new') {
-      // First-time use check - simplified
-    }
-  }
-
-  return credit;
-}
-
-/**
- * Calculate Residential Energy Credit
- * Form 3468 - Energy Efficient Home Improvements Credit
- */
-export function calculateResidentialEnergyCredit(taxReturn: TaxReturn, agi: number): number {
-  const energyCredit = taxReturn.residentialEnergyCredit;
-  if (!energyCredit || !energyCredit.improvements || energyCredit.improvements.length === 0) return 0;
-
-  const { improvements: improvementsData } = RESIDENTIAL_ENERGY_CREDIT_2025;
-  const { improvements } = energyCredit;
-
-  let totalCredit = 0;
-  const currentYear = 2025;
-
-  for (const improvement of improvements) {
-    let credit = 0;
-    
-    switch (improvement.improvementType) {
-      case 'solar-electric':
-      case 'solar-water-heating':
-      case 'wind-energy':
-      case 'geothermal-heat-pump':
-        // 30% through 2032, no cap
-        credit = Math.round(improvement.cost * improvementsData.solarElectric.rate);
-        break;
-        
-      case 'heat-pump':
-      case 'heat-pump-water-heater':
-        // 30% with $2,000 cap through 2032
-        credit = Math.round(improvement.cost * improvementsData.heatPump.rate);
-        credit = Math.min(credit, improvementsData.heatPump.maxCredit);
-        break;
-        
-      case 'biomass-stove':
-        // 30% with $2,000 cap
-        credit = Math.round(improvement.cost * improvementsData.biomassStove.rate);
-        credit = Math.min(credit, improvementsData.biomassStove.maxCredit);
-        break;
-        
-      case 'fuel-cell':
-        // 30% with per-watt limit - simplified calculation
-        // Assuming cost-based calculation for simplicity
-        credit = Math.round(improvement.cost * 0.30);
-        break;
-        
-      case 'windows-doors':
-      case 'roofing':
-      case 'insulation':
-      case 'sealants':
-      case 'duct-sealing':
-        // 10% with specific caps
-        credit = Math.round(improvement.cost * improvementsData.windowsDoors.rate);
-        credit = Math.min(credit, improvementsData.windowsDoors.maxCredit);
-        break;
-        
-      default:
-        // Other improvements - 10%
-        credit = Math.round(improvement.cost * 0.10);
-        credit = Math.min(credit, improvementsData.insulation.maxCredit);
-    }
-    
-    totalCredit += credit;
-  }
-
-  // Apply annual cap (for improvements made after 2022)
-  // Note: The cap is per taxpayer, not per improvement
-  const annualCap = RESIDENTIAL_ENERGY_CREDIT_2025.annualCap;
-  
-  return Math.min(totalCredit, annualCap);
 }
 
 /**
@@ -919,18 +504,8 @@ export function calculateTaxReturn(taxReturn: TaxReturn): TaxCalculation {
   // Calculate taxable income
   const taxableIncome = calculateTaxableIncome(taxReturn);
 
-  // Calculate QBI deduction (reduces taxable income for regular tax calculation)
-  const qbiDeduction = calculateQBIDeduction(
-    taxReturn,
-    taxableIncome,
-    taxReturn.personalInfo.filingStatus
-  );
-
-  // Taxable income after QBI deduction
-  const taxableIncomeAfterQBI = Math.max(0, taxableIncome - qbiDeduction);
-
-  // Calculate regular tax on reduced taxable income
-  const regularTax = calculateRegularTax(taxableIncomeAfterQBI, taxReturn.personalInfo.filingStatus);
+  // Calculate regular tax
+  const regularTax = calculateRegularTax(taxableIncome, taxReturn.personalInfo.filingStatus);
 
   // Calculate AMT
   const amt = calculateAMT(taxReturn, agi, regularTax);
@@ -940,93 +515,32 @@ export function calculateTaxReturn(taxReturn: TaxReturn): TaxCalculation {
 
   // Calculate credits
   const childTaxCredit = calculateChildTaxCredit(taxReturn, agi);
-  const earnedIncomeCredit = calculateEITC(taxReturn, agi);
   const educationCredits = calculateEducationCredits(taxReturn, agi);
-  const childAndDependentCareCredit = calculateChildAndDependentCareCredit(taxReturn, agi);
   const saversCredit = calculateSaversCredit(taxReturn, agi);
-  const electricVehicleCredit = calculateElectricVehicleCredit(taxReturn, agi);
-  const residentialEnergyCredit = calculateResidentialEnergyCredit(taxReturn, agi);
-  const totalCredits = 
-    childTaxCredit + 
-    earnedIncomeCredit + 
-    educationCredits + 
-    childAndDependentCareCredit + 
-    saversCredit + 
-    electricVehicleCredit + 
-    residentialEnergyCredit;
+  const totalCredits = childTaxCredit + educationCredits + saversCredit;
 
   // Tax after credits
   const totalTaxAfterCredits = Math.max(0, totalTaxBeforeCredits - totalCredits);
 
   // Calculate self-employment tax
   let selfEmploymentTax = 0;
-  
-  // Calculate total SE income sources
-  let seProfit = 0;
   if (taxReturn.selfEmployment) {
-    seProfit = calculateScheduleCProfit(taxReturn.selfEmployment);
-  }
-  
-  let total1099NEC = 0;
-  if (taxReturn.form1099NEC && taxReturn.form1099NEC.length > 0) {
-    total1099NEC = taxReturn.form1099NEC.reduce((sum, nec) => sum + (nec.nonEmployeeCompensation || 0), 0);
-  }
-  
-  // 1099-K is gross payments - we can't calculate SE tax accurately without knowing expenses
-  // For now, we'll include it as income but warn that expenses should be tracked elsewhere
-  let total1099K = 0;
-  if (taxReturn.form1099K && taxReturn.form1099K.length > 0) {
-    total1099K = taxReturn.form1099K.reduce((sum, k) => sum + (k.grossAmount || 0), 0);
-    // TODO: In a fuller implementation, we'd add a field for 1099-K expenses
-  }
-  
-  const combinedProfit = seProfit + total1099NEC + total1099K;
-  if (combinedProfit > 400) {
-    selfEmploymentTax = calculateSelfEmploymentTax(combinedProfit);
+    const seProfit = calculateScheduleCProfit(taxReturn.selfEmployment);
+    if (seProfit > 400) {
+      selfEmploymentTax = calculateSelfEmploymentTax(seProfit);
+    }
   }
 
-  // Additional Medicare Tax (0.9% on wages + SE income above threshold)
-  // Threshold: $200K single, $250K married filing jointly, $125K married filing separately
-  const { additionalMedicareRate, additionalMedicareThreshold } = SELF_EMPLOYMENT_TAX_2025;
-  const filingStatus = taxReturn.personalInfo.filingStatus;
-  
-  // Calculate total Medicare wages from W-2 (employee portion)
-  const totalMedicareWages = taxReturn.w2Income.reduce(
-    (sum, w2) => sum + (isFiniteNumber(w2.medicareWages) ? w2.medicareWages : 0),
-    0
-  );
-  
-  // Net self-employment income (92.35% of profit) counts toward the threshold
-  const seIncomeForMedicare = combinedProfit > 0 ? combinedProfit * 0.9235 : 0;
-  
-  // Total income subject to Additional Medicare Tax
-  const totalMedicareTaxableIncome = totalMedicareWages + seIncomeForMedicare;
-  
-  // Get threshold based on filing status
-  let threshold = additionalMedicareThreshold.single; // default
-  if (filingStatus === 'Married Filing Jointly') {
-    threshold = additionalMedicareThreshold.marriedFilingJointly;
-  } else if (filingStatus === 'Married Filing Separately') {
-    threshold = additionalMedicareThreshold.marriedFilingSeparately;
-  }
-  
-  // Calculate Additional Medicare Tax only on amount exceeding threshold
-  let additionalMedicareTax = 0;
-  if (totalMedicareTaxableIncome > threshold) {
-    additionalMedicareTax = (totalMedicareTaxableIncome - threshold) * additionalMedicareRate;
-  }
+  // Additional Medicare Tax
+  const additionalMedicareTax = 0; // TODO: Implement
 
   // Total tax
   const totalTax = totalTaxAfterCredits + selfEmploymentTax + additionalMedicareTax;
 
   // Federal tax withheld
-  let federalTaxWithheld = taxReturn.w2Income.reduce((sum, w2) => sum + w2.federalTaxWithheld, 0);
-  
-  // Add 1099-NEC federal tax withheld
-  if (taxReturn.form1099NEC && taxReturn.form1099NEC.length > 0) {
-    const necWithheld = taxReturn.form1099NEC.reduce((sum, nec) => sum + (nec.federalTaxWithheld || 0), 0);
-    federalTaxWithheld += necWithheld;
-  }
+  const federalTaxWithheld = 
+    taxReturn.w2Income.reduce((sum, w2) => sum + w2.federalTaxWithheld, 0) +
+    taxReturn.socialSecurity.reduce((sum, ss) => sum + ss.federalTaxWithheld, 0);
 
   // Estimated tax payments
   const estimatedTaxPayments = taxReturn.estimatedTaxPayments || 0;
@@ -1039,7 +553,7 @@ export function calculateTaxReturn(taxReturn: TaxReturn): TaxCalculation {
     adjustments,
     agi,
     standardOrItemizedDeduction: deduction,
-    qbiDeduction,
+    qbiDeduction: 0, // TODO: Implement QBI deduction
     taxableIncome,
     regularTax,
     amt,
