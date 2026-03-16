@@ -390,13 +390,8 @@ export default function RetirementForm({
           </div>
         </div>
 
-        {/* Form 8606 Analysis */}
+        {/* Form 8606 Analysis - show whenever form8606 is defined */}
         {form8606 && (
-          (form8606.conversionsToRoth > 0 || 
-           form8606.nondeductibleContributions > 0 ||
-           form8606.priorYearBasis > 0 ||
-           form8606.distributionsFromTraditionalIRA > 0 ||
-           form8606.endOfYearTraditionalIRABalance > 0) && (
           <div className="mt-6 space-y-4 border-t pt-6">
             <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wide">Pro-Rata Analysis</h4>
 
