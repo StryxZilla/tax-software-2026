@@ -12,6 +12,11 @@ function build1099IntExtractionReport(data: Partial<Interest1099INT>) {
   const expectedFields: Array<{ key: keyof Interest1099INT; label: string }> = [
     { key: 'payer', label: 'Payer name' },
     { key: 'amount', label: 'Interest income (Box 1)' },
+    { key: 'earlyWithdrawalPenalty', label: 'Early withdrawal penalty (Box 2)' },
+    { key: 'usSavingsBondInterest', label: 'US Savings Bonds/Treasury (Box 3)' },
+    { key: 'taxExemptInterest', label: 'Tax-exempt interest (Box 4)' },
+    { key: 'investmentExpenses', label: 'Investment expenses (Box 5)' },
+    { key: 'foreignTaxPaid', label: 'Foreign tax paid (Box 6)' },
   ];
 
   const foundFields = expectedFields
@@ -87,6 +92,11 @@ export default function InterestIncomeForm({ values, onChange, onValidationChang
     onChange([...values, {
       payer: '',
       amount: 0,
+      earlyWithdrawalPenalty: 0,
+      usSavingsBondInterest: 0,
+      taxExemptInterest: 0,
+      investmentExpenses: 0,
+      foreignTaxPaid: 0,
       earlyWithdrawalPenalty: 0,
       usSavingsBondInterest: 0,
       taxExemptInterest: 0,
@@ -280,6 +290,126 @@ export default function InterestIncomeForm({ values, onChange, onValidationChang
                     {!getFieldError(`interest-${index}-amount`) && (
                       <p className="mt-3 text-xs text-slate-600">This is the total interest income shown in Box 1 of your 1099-INT</p>
                     )}
+                  </div>
+                </div>
+
+                {/* Additional 1099-INT Boxes */}
+                <div className="border-t pt-6 space-y-4">
+                  <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wide mb-4 flex items-center space-x-2">
+                    <DollarSign className="w-4 h-4 text-green-600" />
+                    <span>Additional Boxes (if applicable)</span>
+                  </h4>
+
+                  {/* Box 2: Early Withdrawal Penalty */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        Early Withdrawal Penalty (Box 2)
+                      </label>
+                      <div className="relative">
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                          <span className="text-slate-600 font-bold text-xl">$</span>
+                        </div>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={interest.earlyWithdrawalPenalty || ''}
+                          onChange={(e) => updateInterest(index, { earlyWithdrawalPenalty: parseFloat(e.target.value) || 0 })}
+                          placeholder="0.00"
+                          className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        />
+                      </div>
+                      <p className="mt-1 text-xs text-slate-500">Penalty for early withdrawal of funds</p>
+                    </div>
+
+                    {/* Box 3: US Savings Bonds Interest */}
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        US Savings Bonds / Treasury Interest (Box 3)
+                      </label>
+                      <div className="relative">
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                          <span className="text-slate-600 font-bold text-xl">$</span>
+                        </div>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={interest.usSavingsBondInterest || ''}
+                          onChange={(e) => updateInterest(index, { usSavingsBondInterest: parseFloat(e.target.value) || 0 })}
+                          placeholder="0.00"
+                          className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        />
+                      </div>
+                      <p className="mt-1 text-xs text-slate-500">Interest from US Savings Bonds/Treasury obligations</p>
+                    </div>
+
+                    {/* Box 4: Tax-Exempt Interest */}
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        Tax-Exempt Interest (Box 4)
+                      </label>
+                      <div className="relative">
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                          <span className="text-slate-600 font-bold text-xl">$</span>
+                        </div>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={interest.taxExemptInterest || ''}
+                          onChange={(e) => updateInterest(index, { taxExemptInterest: parseFloat(e.target.value) || 0 })}
+                          placeholder="0.00"
+                          className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        />
+                      </div>
+                      <p className="mt-1 text-xs text-slate-500">Tax-exempt municipal bond interest</p>
+                    </div>
+
+                    {/* Box 5: Investment Expenses */}
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        Investment Expenses (Box 5)
+                      </label>
+                      <div className="relative">
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                          <span className="text-slate-600 font-bold text-xl">$</span>
+                        </div>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={interest.investmentExpenses || ''}
+                          onChange={(e) => updateInterest(index, { investmentExpenses: parseFloat(e.target.value) || 0 })}
+                          placeholder="0.00"
+                          className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        />
+                      </div>
+                      <p className="mt-1 text-xs text-slate-500">Deductible investment expenses</p>
+                    </div>
+
+                    {/* Box 6: Foreign Tax Paid */}
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        Foreign Tax Paid (Box 6)
+                      </label>
+                      <div className="relative">
+                        <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                          <span className="text-slate-600 font-bold text-xl">$</span>
+                        </div>
+                        <input
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          value={interest.foreignTaxPaid || ''}
+                          onChange={(e) => updateInterest(index, { foreignTaxPaid: parseFloat(e.target.value) || 0 })}
+                          placeholder="0.00"
+                          className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        />
+                      </div>
+                      <p className="mt-1 text-xs text-slate-500">Foreign taxes paid (may be deductible)</p>
+                    </div>
                   </div>
                 </div>
 
