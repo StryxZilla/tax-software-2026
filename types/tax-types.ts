@@ -61,13 +61,22 @@ export interface W2Income {
 
 export interface Interest1099INT {
   payer: string;
-  amount: number;
+  amount: number;                    // Box 1: Interest income
+  earlyWithdrawalPenalty: number;   // Box 2: Early withdrawal penalty
+  usSavingsBondInterest: number;    // Box 3: US Savings Bonds/Treasury interest
+  taxExemptInterest: number;        // Box 4: Tax-exempt interest (affects calculations)
+  investmentExpenses: number;        // Box 5: Investment expenses
+  foreignTaxPaid: number;            // Box 6: Foreign tax paid
 }
 
 export interface Dividend1099DIV {
   payer: string;
-  ordinaryDividends: number;
-  qualifiedDividends: number;
+  ordinaryDividends: number;        // Box 1a: Ordinary dividends
+  qualifiedDividends: number;       // Box 1b: Qualified dividends (taxed at lower rate)
+  capitalGainDistributions: number; // Box 2: Capital gain distributions
+  exemptInterestDividends: number;  // Box 3: Exempt-interest dividends (municipal bonds)
+  foreignTaxPaid: number;           // Box 6: Foreign tax paid (can deduct or credit)
+  foreignCountry: string;          // Box 7: Foreign country or US possession
 }
 
 export interface CapitalGainTransaction {
@@ -214,6 +223,8 @@ export interface AboveTheLineDeductionsData {
 export interface AboveTheLineDeductions {
   educatorExpenses: number;
   studentLoanInterest: number;
+  hsaContributions: number;
+  hsaEmployerContributions: number;
   movingExpenses: number;
   selfEmploymentTaxDeduction: number;
   selfEmployedHealthInsurance: number;
@@ -344,6 +355,7 @@ export const STEP_META: StepMeta[] = [
   { id: 'dependents',             requirement: 'optional' },
   { id: 'income-w2',              requirement: 'optional' },
   { id: 'income-interest',        requirement: 'optional' },
+  { id: 'income-dividends',      requirement: 'optional' },
   { id: 'income-capital-gains',   requirement: 'optional' },
   { id: 'income-self-employment', requirement: 'optional' },
   { id: 'income-1099-nec',       requirement: 'optional' },

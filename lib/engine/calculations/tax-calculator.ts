@@ -54,19 +54,26 @@ export function calculateTotalIncome(taxReturn: TaxReturn): number {
     total += w2.wages + taxableBox12;
   });
 
-  // Interest income
+  // Interest income (Box 1 from 1099-INT)
   taxReturn.interest.forEach(int => {
-    total += int.amount;
+    total += int.amount || 0;
+    // Tax-exempt interest (Box 4) doesn't add to taxable income but affects AMT
   });
 
   // Dividend income
   taxReturn.dividends.forEach(div => {
-    total += div.ordinaryDividends;
+    total += div.ordinaryDividends || 0;
+    // Qualified dividends are included in ordinary but taxed at lower rate
+    // Capital gain distributions (Box 2) go to Schedule D
+    // Exempt interest dividends (Box 3) are tax-exempt
   });
 
-  // Capital gains (short-term and long-term)
+  // Add capital gain distributions from 1099-DIV to total income
+  const dividendCapitalGains = taxReturn.dividends.reduce((sum, d) => sum + (d.capitalGainDistributions || 0), 0);
+  
+  // Capital gains (short-term and long-term) - includes capital gain distributions
   const { shortTermGains, longTermGains } = calculateCapitalGains(taxReturn.capitalGains);
-  total += shortTermGains + longTermGains;
+  total += shortTermGains + longTermGains + dividendCapitalGains;
 
   // Self-employment income
   if (taxReturn.selfEmployment) {

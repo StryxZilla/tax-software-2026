@@ -13,6 +13,11 @@ export async function extract1099INTData(imageFile: File): Promise<Partial<Inter
   const extracted: Partial<Interest1099INT> = {
     payer: extractPayer(cleanText),
     amount: extractInterestIncome(cleanText),
+    earlyWithdrawalPenalty: 0,
+    usSavingsBondInterest: 0,
+    taxExemptInterest: 0,
+    investmentExpenses: 0,
+    foreignTaxPaid: 0,
   };
 
   if (!extracted.payer && !extracted.amount) {

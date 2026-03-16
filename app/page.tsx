@@ -10,6 +10,7 @@ import PersonalInfoForm from '../components/forms/PersonalInfoForm'
 import DependentsForm from '../components/forms/DependentsForm'
 import W2Form from '../components/forms/W2Form'
 import InterestIncomeForm from '../components/forms/InterestIncomeForm'
+import DividendIncomeForm from '../components/forms/DividendIncomeForm'
 import CapitalGainsForm from '../components/forms/CapitalGainsForm'
 import ScheduleCForm from '../components/forms/ScheduleCForm'
 import Form1099NECList from '../components/forms/Form1099NECList'
@@ -168,6 +169,26 @@ function WizardStepContent() {
             onPrevious={handlePrevious}
             onSkip={handleSkip}
             canProceed={isCurrentFormValid}
+          />
+        </>
+      )
+
+    case 'income-dividends':
+      return (
+        <>
+          <DividendIncomeForm
+            values={taxReturn.dividends}
+            onChange={(dividends) => {
+              updateTaxReturn({ dividends })
+              recalculateTaxes()
+            }}
+          />
+          <FormNavigation
+            currentStep={currentStep}
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            onSkip={handleSkip}
+            canProceed={true}
           />
         </>
       )
