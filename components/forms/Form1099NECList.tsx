@@ -15,7 +15,7 @@ interface Form1099NECListProps {
   onChange: (values: Form1099NEC[]) => void;
 }
 
-export default function Form1099NECList({ values, onChange }: Form1099NECListProps) {
+export default function Form1099NECList({ values = [], onChange }: Form1099NECListProps) {
   const add1099NEC = () => {
     onChange([
       ...values,
@@ -134,7 +134,7 @@ export default function Form1099NECList({ values, onChange }: Form1099NECListPro
                 <input
                   type="number"
                   step="0.01"
-                  value={nec.federalTaxWithheld || ''}
+                  value={nec.federalTaxWithheld ?? ''}
                   onChange={(e) => update1099NEC(nec.id, 'federalTaxWithheld', parseFloat(e.target.value) || 0)}
                   className="w-full pl-8 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="0.00"
@@ -152,7 +152,7 @@ export default function Form1099NECList({ values, onChange }: Form1099NECListPro
                 <input
                   type="number"
                   step="0.01"
-                  value={nec.nonEmployeeCompensation || ''}
+                  value={nec.nonEmployeeCompensation ?? ''}
                   onChange={(e) => update1099NEC(nec.id, 'nonEmployeeCompensation', parseFloat(e.target.value) || 0)}
                   className="w-full pl-8 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="0.00"

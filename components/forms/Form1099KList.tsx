@@ -14,7 +14,7 @@ interface Form1099KListProps {
   onChange: (values: Form1099K[]) => void;
 }
 
-export default function Form1099KList({ values, onChange }: Form1099KListProps) {
+export default function Form1099KList({ values = [], onChange }: Form1099KListProps) {
   const add1099K = () => {
     onChange([
       ...values,
