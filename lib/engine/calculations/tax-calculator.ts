@@ -55,7 +55,7 @@ export function calculateTotalIncome(taxReturn: TaxReturn): number {
   });
 
   // Social Security benefits (taxable portion)
-  taxReturn.socialSecurity.forEach(ss => {
+  taxReturn.socialSecurity?.forEach(ss => {
     total += ss.taxableBenefits;
   });
 
@@ -641,7 +641,7 @@ export function calculateTaxReturn(taxReturn: TaxReturn): TaxCalculation {
   // Federal tax withheld
   const federalTaxWithheld = 
     taxReturn.w2Income.reduce((sum, w2) => sum + w2.federalTaxWithheld, 0) +
-    taxReturn.socialSecurity.reduce((sum, ss) => sum + ss.federalTaxWithheld, 0);
+    (taxReturn.socialSecurity?.reduce((sum, ss) => sum + ss.federalTaxWithheld, 0) || 0);
 
   // Estimated tax payments
   const estimatedTaxPayments = taxReturn.estimatedTaxPayments || 0;
