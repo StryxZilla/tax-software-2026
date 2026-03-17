@@ -21,7 +21,7 @@ interface SocialSecurityFormProps {
   onValidationChange?: (isValid: boolean) => void;
 }
 
-export default function SocialSecurityForm({ values, onChange, onValidationChange }: SocialSecurityFormProps) {
+export default function SocialSecurityForm({ values = [], onChange, onValidationChange }: SocialSecurityFormProps) {
   const [showAllErrors, setShowAllErrors] = React.useState(false);
   const [touchedFields, setTouchedFields] = React.useState<Set<string>>(new Set());
 
