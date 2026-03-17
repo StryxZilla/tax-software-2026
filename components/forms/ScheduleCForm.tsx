@@ -5,6 +5,7 @@ import { SelfEmploymentIncome, ScheduleCExpenses } from '../../types/tax-types';
 import { validateScheduleC } from '../../lib/validation/form-validation';
 import { AlertCircle } from 'lucide-react';
 import ValidationError from '../common/ValidationError';
+import CurrencyInput from '../common/CurrencyInput';
 
 interface ScheduleCFormProps {
   value?: SelfEmploymentIncome;
