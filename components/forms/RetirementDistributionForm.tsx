@@ -3,7 +3,7 @@ import React from 'react';
 import { Form1099R } from '../../types/tax-types';
 
 interface Props {
-  values: Form1099R[];
+  values?: Form1099R[];
   onChange: (values: Form1099R[]) => void;
 }
 
@@ -20,7 +20,7 @@ const DISTRIBUTION_CODES = [
   { value: 'A', label: 'A - Annuity' },
 ];
 
-export default function RetirementDistributionForm({ values, onChange }: Props) {
+export default function RetirementDistributionForm({ values = [], onChange }: Props) {
   const addForm = () => {
     onChange([...values, { id: crypto.randomUUID(), payer: '', grossDistribution: 0, taxableAmount: 0, federalTaxWithheld: 0, employeeContributions: 0, distributionCode: '' }]);
   };

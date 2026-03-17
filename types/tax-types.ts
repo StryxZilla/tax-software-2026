@@ -61,12 +61,24 @@ export interface W2Income {
 
 export interface Interest1099INT {
   payer: string;
+  accountNumber?: string;        // Box (if applicable)
+  // Boxes 1-6
   amount: number;                    // Box 1: Interest income
   earlyWithdrawalPenalty: number;   // Box 2: Early withdrawal penalty
   usSavingsBondInterest: number;    // Box 3: US Savings Bonds/Treasury interest
-  taxExemptInterest: number;        // Box 4: Tax-exempt interest (affects calculations)
-  investmentExpenses: number;        // Box 5: Investment expenses
+  backupWithholding: number;         // Box 4: Backup withholding
+  investmentExpenses: number;        // Box 5: Investment expenses (REMIC only)
   foreignTaxPaid: number;            // Box 6: Foreign tax paid
+  // Box 7-8
+  foreignCountry?: string;           // Box 7: Foreign country or US possession
+  taxExemptInterest: number;        // Box 8: Tax-exempt interest (OID)
+  // Boxes 9-14 (rarely used)
+  privateActivityBondInterest?: number; // Box 9: Interest on specified private activity bond
+  marketDiscount?: number;              // Box 10: Market discount
+  bondPremium?: number;                // Box 11: Bond premium
+  bondPremiumTreasury?: number;        // Box 12: Bond premium on US Treasury obligations
+  bondPremiumTaxExempt?: number;       // Box 13: Bond premium on tax-exempt bonds
+  cusipNumber?: string;                // Box 14: CUSIP number
 }
 
 export interface Dividend1099DIV {

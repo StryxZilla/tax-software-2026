@@ -94,9 +94,11 @@ export default function InterestIncomeForm({ values, onChange, onValidationChang
       amount: 0,
       earlyWithdrawalPenalty: 0,
       usSavingsBondInterest: 0,
-      taxExemptInterest: 0,
+      backupWithholding: 0,
       investmentExpenses: 0,
       foreignTaxPaid: 0,
+      foreignCountry: '',
+      taxExemptInterest: 0,
     }]);
   };
 
