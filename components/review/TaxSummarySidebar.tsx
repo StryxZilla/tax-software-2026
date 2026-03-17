@@ -78,15 +78,41 @@ export default function TaxSummarySidebar() {
   const [whatIfIRA, setWhatIfIRA] = useState<number | null>(null);
   const [whatIfEstimatedTax, setWhatIfEstimatedTax] = useState<number | null>(null);
 
-  // Get current 401k contributions from above-the-line deductions
+  // Get current 401k contributions from W-2 data
   const current401k = useMemo(() => {
-    return taxReturn.aboveTheLineDeductions?.sepIRA ?? 0;
-  }, [taxReturn.aboveTheLineDeductions]);
+    return taxReturn.k401Contributions ?? 0;
+  }, [taxReturn.k401Contributions]);
 
   // Check if self-employed
   const isSelfEmployed = useMemo(() => {
     return taxReturn.selfEmployment && taxReturn.selfEmployment.grossReceipts > 0;
   }, [taxReturn.selfEmployment]);
+
+  // Check for backdoor Roth IRA (if they've done a conversion, traditional IRA deduction may be limited)
+  const hasBackdoorRoth = useMemo(() => {
+    const form8606 = taxReturn.form8606;
+    return form8606 && form8606.conversionsToRoth > 0;
+  }, [taxReturn.form8606]);
+
+  // Check if user has traditional IRA with non-deductible contributions (affects backdoor)
+  const hasNondeductibleTraditionalIRA = useMemo(() => {
+    const form8606 = taxReturn.form8606;
+    return form8606 && form8606.nondeductibleContributions > 0;
+  }, [taxReturn.form8606]);
+
+  // Calculate remaining 401k contribution room
+  const remaining401kRoom = useMemo(() => {
+    const age = taxReturn.personalInfo?.age ?? 35;
+    const limit = age >= 50 ? K401_CATCHUP_2025 : K401_LIMIT_2025;
+    // Simplified: assume no employer match tracked, so use employee limit
+    return Math.max(0, limit - current401k);
+  }, [current401k, taxReturn.personalInfo?.age]);
+
+  // Max 401k slider value (current + remaining room)
+  const max401kSlider = useMemo(() => {
+    const age = taxReturn.personalInfo?.age ?? 35;
+    return age >= 50 ? K401_CATCHUP_2025 : K401_LIMIT_2025;
+  }, [taxReturn.personalInfo?.age]);
 
   // Calculate what-if impact for 401k contributions
   const calculate401kImpact = useCallback((additionalContribution: number): WhatIfResult | null => {
@@ -858,7 +884,7 @@ export default function TaxSummarySidebar() {
                   <input
                     type="range"
                     min={0}
-                    max={K401_LIMIT_2025}
+                    max={max401kSlider}
                     step={500}
                     value={whatIf401k !== null ? whatIf401k : current401k}
                     onChange={(e) => setWhatIf401k(Number(e.target.value))}
@@ -866,7 +892,7 @@ export default function TaxSummarySidebar() {
                   />
                   <div className="flex justify-between text-xs text-slate-500 mt-1">
                     <span>$0</span>
-                    <span>${(K401_LIMIT_2025).toLocaleString()} (2025 limit)</span>
+                    <span>${max401kSlider.toLocaleString()} (2025 limit){current401k > 0 ? ` • $${current401k.toLocaleString()} contributed` : ''}</span>
                   </div>
                   {whatIf401k !== null && whatIf401k !== current401k && (
                     <div className="mt-2 p-2 bg-white rounded-lg border border-violet-100">
@@ -898,6 +924,17 @@ export default function TaxSummarySidebar() {
                 </div>
 
                 {/* Traditional vs Roth Comparison (IRA) */}
+                {hasBackdoorRoth ? (
+                  <div className="mb-5 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                      <div className="text-xs text-amber-800">
+                        <p className="font-semibold mb-1">Backdoor Roth Detected</p>
+                        <p>You've already done a Roth conversion this year. Traditional IRA contributions may not be deductible. Consider Roth IRA contributions instead.</p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
                 <div className="mb-5">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-sm font-medium text-slate-700">Traditional IRA Contribution</span>
@@ -943,6 +980,7 @@ export default function TaxSummarySidebar() {
                     </div>
                   )}
                 </div>
+                )}
 
                 {/* Estimated Tax Payments (Self-Employed Only) */}
                 {isSelfEmployed && (
