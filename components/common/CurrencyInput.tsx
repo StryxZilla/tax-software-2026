@@ -33,7 +33,7 @@ export interface CurrencyInputProps
 
 /** Format a number to 2 decimal places for display */
 export function formatCurrency(value: number | undefined | null): string {
-  if (value === undefined || value === null || value === 0) return '';
+  if (value === undefined || value === null) return '';
   return value.toFixed(2);
 }
 
@@ -64,11 +64,11 @@ const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
       setIsFocused(false);
       // Format to 2 decimals on blur
       const parsed = parseFloat(displayValue);
-      if (!isNaN(parsed) && parsed !== 0) {
+      if (!isNaN(parsed)) {
         setDisplayValue(parsed.toFixed(2));
         onValueChange?.(parsed);
       } else {
-        setDisplayValue('');
+        setDisplayValue('0.00');
         onValueChange?.(0);
       }
       onBlur?.(e);
