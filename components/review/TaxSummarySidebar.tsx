@@ -314,19 +314,19 @@ export default function TaxSummarySidebar() {
     if (!taxReturn) return null;
 
     // Calculate withholding from W-2
-    const w2Withholding = taxReturn.w2Income.reduce((sum, w2) => sum + (w2.federalTaxWithheld || 0), 0);
-    const w2Wages = taxReturn.w2Income.reduce((sum, w2) => sum + (w2.wages || 0), 0);
+    const w2Withholding = (taxReturn.w2Income || []).reduce((sum, w2) => sum + (w2.federalTaxWithheld || 0), 0);
+    const w2Wages = (taxReturn.w2Income || []).reduce((sum, w2) => sum + (w2.wages || 0), 0);
 
     // Calculate income WITHOUT withholding (other sources)
-    const totalInterest = taxReturn.interest.reduce((sum, int) => sum + (int.amount || 0), 0);
-    const totalDividends = taxReturn.dividends.reduce((sum, div) => sum + (div.ordinaryDividends || 0), 0);
-    const totalCapitalGains = taxReturn.capitalGains.reduce((sum, cg) => sum + ((cg.proceeds || 0) - (cg.costBasis || 0)), 0);
+    const totalInterest = (taxReturn.interest || []).reduce((sum, int) => sum + (int.amount || 0), 0);
+    const totalDividends = (taxReturn.dividends || []).reduce((sum, div) => sum + (div.ordinaryDividends || 0), 0);
+    const totalCapitalGains = (taxReturn.capitalGains || []).reduce((sum, cg) => sum + ((cg.proceeds || 0) - (cg.costBasis || 0)), 0);
     const selfEmployment = taxReturn.selfEmployment ? 
       ((taxReturn.selfEmployment.grossReceipts || 0) - (taxReturn.selfEmployment.returns || 0) - (taxReturn.selfEmployment.costOfGoodsSold || 0)) : 0;
-    const total1099NEC = taxReturn.form1099NEC.reduce((sum, nec) => sum + (nec.nonEmployeeCompensation || 0), 0);
-    const total1099R = taxReturn.form1099R.reduce((sum, r) => sum + (r.grossDistribution || 0), 0);
-    const socialSecurity = taxReturn.socialSecurity.reduce((sum, ss) => sum + (ss.benefitsReceived || 0), 0);
-    const rentalIncome = taxReturn.rentalProperties.reduce((sum, prop) => 
+    const total1099NEC = (taxReturn.form1099NEC || []).reduce((sum, nec) => sum + (nec.nonEmployeeCompensation || 0), 0);
+    const total1099R = (taxReturn.form1099R || []).reduce((sum, r) => sum + (r.grossDistribution || 0), 0);
+    const socialSecurity = (taxReturn.socialSecurity || []).reduce((sum, ss) => sum + (ss.benefitsReceived || 0), 0);
+    const rentalIncome = (taxReturn.rentalProperties || []).reduce((sum, prop) => 
       sum + ((prop.rentalIncome || 0) - (prop.expenses || 0)), 0);
 
     const incomeWithWithholding = w2Wages;
