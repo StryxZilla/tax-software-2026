@@ -80,8 +80,8 @@ export default function TaxSummarySidebar() {
 
   // Get current 401k contributions from W-2 data
   const current401k = useMemo(() => {
-    return taxReturn.k401Contributions ?? 0;
-  }, [taxReturn.k401Contributions]);
+    return preTax401k;
+  }, [preTax401k]);
 
   // Check if self-employed
   const isSelfEmployed = useMemo(() => {
@@ -100,13 +100,59 @@ export default function TaxSummarySidebar() {
     return form8606 && form8606.nondeductibleContributions > 0;
   }, [taxReturn.form8606]);
 
-  // Calculate remaining 401k contribution room
+  // Calculate total 401k contributions (pre-tax + after-tax + employer match)
+  const { preTax401k, afterTax401k, employerMatch, total401k } = useMemo(() => {
+    let preTax = 0;
+    let afterTax = 0;
+    let match = 0;
+
+    // Get pre-tax and after-tax from W-2 Box 12
+    taxReturn.w2Income?.forEach(w2 => {
+      w2.box12?.forEach(box => {
+        // Pre-tax 401k/403b deferrals: D, F, H, E
+        if (['D', 'E', 'F', 'H'].includes(box.code)) {
+          preTax += box.amount || 0;
+        }
+        // After-tax contributions: G
+        if (box.code === 'G') {
+          afterTax += box.amount || 0;
+        }
+        // Employer match: typically not reported in Box 12, but check for W (Roth match)
+        if (box.code === 'W') {
+          // This is Roth employer match - counts toward limit but is already taxed
+          match += box.amount || 0;
+        }
+      });
+    });
+
+    // Also include k401Contributions if set (may be from manual entry)
+    const k401Manual = taxReturn.k401Contributions ?? 0;
+    if (k401Manual > 0 && preTax === 0) {
+      // Only use if no box12 data found
+      preTax = k401Manual;
+    }
+
+    return {
+      preTax401k: preTax,
+      afterTax401k: afterTax,
+      employerMatch: match,
+      total401k: preTax + afterTax + match
+    };
+  }, [taxReturn.w2Income, taxReturn.k401Contributions]);
+
+  // 2025 limits
+  const K401_TOTAL_LIMIT_2025 = 69500; // Employee + employer combined (after-tax allowed up to this)
+  
+  // Check if 401k limit exceeded
+  const is401kOverLimit = total401k > (taxReturn.personalInfo?.age ?? 35 >= 50 ? K401_CATCHUP_2025 : K401_LIMIT_2025);
+  const is401kOverTotalLimit = total401k > K401_TOTAL_LIMIT_2025;
+
+  // Calculate remaining 401k contribution room (employee-only limit)
   const remaining401kRoom = useMemo(() => {
     const age = taxReturn.personalInfo?.age ?? 35;
     const limit = age >= 50 ? K401_CATCHUP_2025 : K401_LIMIT_2025;
-    // Simplified: assume no employer match tracked, so use employee limit
-    return Math.max(0, limit - current401k);
-  }, [current401k, taxReturn.personalInfo?.age]);
+    return Math.max(0, limit - preTax401k);
+  }, [preTax401k, taxReturn.personalInfo?.age]);
 
   // Max 401k slider value (current + remaining room)
   const max401kSlider = useMemo(() => {
@@ -872,6 +918,36 @@ export default function TaxSummarySidebar() {
                   <Sliders className="w-5 h-5 text-violet-600" />
                   <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wide">What-If Scenarios</h3>
                 </div>
+
+                {/* 401k limit warnings */}
+                {is401kOverLimit && (
+                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+                      <div className="text-xs text-red-800">
+                        <p className="font-semibold mb-1">401(k) Limit Exceeded</p>
+                        <p>You've contributed ${total401k.toLocaleString()} total (pre-tax + after-tax + match). The 2025 employee contribution limit is ${(taxReturn.personalInfo?.age ?? 35 >= 50 ? K401_CATCHUP_2025 : K401_LIMIT_2025).toLocaleString()}.</p>
+                        {afterTax401k > 0 && (
+                          <p className="mt-1">Note: ${afterTax401k.toLocaleString()} is after-tax contributions.</p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Show after-tax breakdown if applicable */}
+                {(afterTax401k > 0 || employerMatch > 0) && (
+                  <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-start gap-2">
+                      <Info className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                      <div className="text-xs text-blue-800">
+                        <p className="font-semibold mb-1">401(k) Breakdown</p>
+                        <p>Pre-tax: ${preTax401k.toLocaleString()} | After-tax: ${afterTax401k.toLocaleString()} | Employer: ${employerMatch.toLocaleString()}</p>
+                        <p className="mt-1">Total: ${total401k.toLocaleString()} / ${K401_TOTAL_LIMIT_2025.toLocaleString()} (2025 combined limit)</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 {/* 401(k) Contribution Slider */}
                 <div className="mb-5">
