@@ -512,6 +512,100 @@ function WizardStepContent() {
                 <h3 className="text-2xl font-bold text-slate-900 mb-6 pb-3 border-b-2 border-blue-100">
                   💰 Income & Adjustments
                 </h3>
+
+                {/* Detailed Income Breakdown */}
+                <div className="mb-8">
+                  <h4 className="text-lg font-semibold text-slate-700 mb-4">Income Breakdown</h4>
+                  <div className="space-y-3">
+                    {/* W-2 Income */}
+                    {taxReturn.w2Income.filter(w2 => w2.wages > 0).map((w2, idx) => (
+                      <div key={idx} className="flex justify-between items-center py-2 px-4 bg-blue-50 rounded-lg">
+                        <span className="text-slate-700">
+                          <span className="font-medium">W-2: {w2.employer || 'Employer ' + (idx + 1)}</span>
+                          <span className="text-slate-500 text-sm ml-2">(Wages)</span>
+                        </span>
+                        <span className="font-semibold text-slate-900">${w2.wages.toLocaleString()}</span>
+                      </div>
+                    ))}
+                    
+                    {/* Interest Income */}
+                    {taxReturn.interest.filter(i => i.amount > 0).map((int, idx) => (
+                      <div key={`int-${idx}`} className="flex justify-between items-center py-2 px-4 bg-blue-50 rounded-lg">
+                        <span className="text-slate-700">
+                          <span className="font-medium">{int.payer || 'Interest'}</span>
+                          <span className="text-slate-500 text-sm ml-2">(Interest)</span>
+                        </span>
+                        <span className="font-semibold text-slate-900">${int.amount.toLocaleString()}</span>
+                      </div>
+                    ))}
+                    
+                    {/* Dividends */}
+                    {taxReturn.dividends.filter(d => d.ordinaryDividends > 0).map((div, idx) => (
+                      <div key={`div-${idx}`} className="flex justify-between items-center py-2 px-4 bg-blue-50 rounded-lg">
+                        <span className="text-slate-700">
+                          <span className="font-medium">{div.payer || 'Dividends'}</span>
+                          <span className="text-slate-500 text-sm ml-2">(Dividends)</span>
+                        </span>
+                        <span className="font-semibold text-slate-900">${div.ordinaryDividends.toLocaleString()}</span>
+                      </div>
+                    ))}
+                    
+                    {/* Self-Employment */}
+                    {taxReturn.selfEmployment && (() => {
+                      const profit = (taxReturn.selfEmployment.grossReceipts || 0) - (taxReturn.selfEmployment.returns || 0) - (taxReturn.selfEmployment.costOfGoodsSold || 0);
+                      if (profit > 0) return (
+                        <div className="flex justify-between items-center py-2 px-4 bg-blue-50 rounded-lg">
+                          <span className="text-slate-700">
+                            <span className="font-medium">Self-Employment</span>
+                            <span className="text-slate-500 text-sm ml-2">(Schedule C)</span>
+                          </span>
+                          <span className="font-semibold text-slate-900">${profit.toLocaleString()}</span>
+                        </div>
+                      );
+                      return null;
+                    })()}
+                    
+                    {/* 1099-NEC */}
+                    {taxReturn.form1099NEC.filter(n => n.nonEmployeeCompensation > 0).map((nec, idx) => (
+                      <div key={`nec-${idx}`} className="flex justify-between items-center py-2 px-4 bg-blue-50 rounded-lg">
+                        <span className="text-slate-700">
+                          <span className="font-medium">{nec.payer || '1099-NEC'}</span>
+                          <span className="text-slate-500 text-sm ml-2">(NEC)</span>
+                        </span>
+                        <span className="font-semibold text-slate-900">${nec.nonEmployeeCompensation.toLocaleString()}</span>
+                      </div>
+                    ))}
+                    
+                    {/* Social Security */}
+                    {taxReturn.socialSecurity?.filter(s => s.benefitsReceived > 0).map((ss, idx) => (
+                      <div key={`ss-${idx}`} className="flex justify-between items-center py-2 px-4 bg-blue-50 rounded-lg">
+                        <span className="text-slate-700">
+                          <span className="font-medium">Social Security</span>
+                          <span className="text-slate-500 text-sm ml-2">(Benefits)</span>
+                        </span>
+                        <span className="font-semibold text-slate-900">${ss.benefitsReceived.toLocaleString()}</span>
+                      </div>
+                    ))}
+                    
+                    {/* Rental */}
+                    {taxReturn.rentalProperties.filter(r => (r.rentalIncome || 0) > 0).map((rental, idx) => (
+                      <div key={`rental-${idx}`} className="flex justify-between items-center py-2 px-4 bg-blue-50 rounded-lg">
+                        <span className="text-slate-700">
+                          <span className="font-medium">{rental.address || 'Rental Property ' + (idx + 1)}</span>
+                          <span className="text-slate-500 text-sm ml-2">(Rental)</span>
+                        </span>
+                        <span className="font-semibold text-slate-900">${((rental.rentalIncome || 0) - (rental.expenses || 0)).toLocaleString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Total Income */}
+                  <div className="flex justify-between items-center mt-4 pt-4 border-t-2 border-slate-200">
+                    <span className="text-lg font-bold text-slate-900">Total Income</span>
+                    <span className="text-2xl font-bold text-slate-900">${taxCalculation.totalIncome.toLocaleString()}</span>
+                  </div>
+                </div>
+
                 <dl className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-5 border border-blue-100">
                     <dt className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">Total Income</dt>
@@ -564,6 +658,71 @@ function WizardStepContent() {
                 <h3 className="text-2xl font-bold text-slate-900 mb-6 pb-3 border-b-2 border-blue-100">
                   🧮 Tax Calculation
                 </h3>
+
+                {/* Detailed Tax Breakdown */}
+                <div className="mb-8">
+                  <h4 className="text-lg font-semibold text-slate-700 mb-4">Tax Liability Breakdown</h4>
+                  <div className="space-y-3">
+                    {/* Regular Tax */}
+                    <div className="flex justify-between items-center py-2 px-4 bg-slate-50 rounded-lg">
+                      <span className="text-slate-700">Regular Income Tax</span>
+                      <span className="font-semibold text-slate-900">${taxCalculation.regularTax.toLocaleString()}</span>
+                    </div>
+                    
+                    {/* Self-Employment Tax */}
+                    {taxCalculation.selfEmploymentTax > 0 && (
+                      <div className="flex justify-between items-center py-2 px-4 bg-orange-50 rounded-lg">
+                        <span className="text-slate-700">Self-Employment Tax</span>
+                        <span className="font-semibold text-slate-900">${taxCalculation.selfEmploymentTax.toLocaleString()}</span>
+                      </div>
+                    )}
+                    
+                    {/* Additional Medicare Tax */}
+                    {taxCalculation.additionalMedicareTax > 0 && (
+                      <div className="flex justify-between items-center py-2 px-4 bg-red-50 rounded-lg">
+                        <span className="text-slate-700">Additional Medicare Tax (0.9%)</span>
+                        <span className="font-semibold text-slate-900">${taxCalculation.additionalMedicareTax.toLocaleString()}</span>
+                      </div>
+                    )}
+                    
+                    {/* NIIT */}
+                    {taxCalculation.niitTax > 0 && (
+                      <div className="flex justify-between items-center py-2 px-4 bg-red-50 rounded-lg">
+                        <span className="text-slate-700">Net Investment Income Tax (3.8%)</span>
+                        <span className="font-semibold text-slate-900">${taxCalculation.niitTax.toLocaleString()}</span>
+                      </div>
+                    )}
+                    
+                    {/* AMT */}
+                    {taxCalculation.amt > 0 && (
+                      <div className="flex justify-between items-center py-2 px-4 bg-red-50 rounded-lg">
+                        <span className="text-slate-700">Alternative Minimum Tax</span>
+                        <span className="font-semibold text-slate-900">${taxCalculation.amt.toLocaleString()}</span>
+                      </div>
+                    )}
+                    
+                    {/* Tax Before Credits */}
+                    <div className="flex justify-between items-center py-2 px-4 bg-slate-100 rounded-lg font-medium">
+                      <span className="text-slate-800">Tax Before Credits</span>
+                      <span className="text-slate-900">${(taxCalculation.totalTaxBeforeCredits).toLocaleString()}</span>
+                    </div>
+                    
+                    {/* Credits */}
+                    {taxCalculation.totalCredits > 0 && (
+                      <div className="flex justify-between items-center py-2 px-4 bg-green-50 rounded-lg">
+                        <span className="text-green-700">Less: Tax Credits</span>
+                        <span className="font-semibold text-green-700">-${taxCalculation.totalCredits.toLocaleString()}</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Total Tax */}
+                  <div className="flex justify-between items-center mt-4 pt-4 border-t-2 border-slate-200">
+                    <span className="text-xl font-bold text-slate-900">Total Tax Liability</span>
+                    <span className="text-2xl font-bold text-indigo-700">${taxCalculation.totalTax.toLocaleString()}</span>
+                  </div>
+                </div>
+
                 <dl className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="bg-gradient-to-br from-slate-50 to-gray-100 rounded-xl p-5 border border-slate-200">
                     <dt className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">Regular Tax</dt>
