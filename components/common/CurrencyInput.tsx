@@ -39,7 +39,8 @@ export function formatCurrency(value: number | undefined | null): string {
 
 /** Format a number with commas for display (e.g., 1234.56 -> 1,234.56) */
 export function formatCurrencyWithCommas(value: number | undefined | null): string {
-  if (value === undefined || value === null || value === 0) return '';
+  if (value === undefined || value === null) return '';
+  if (value === 0) return '0.00';
   return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
@@ -69,20 +70,17 @@ const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
 
     const handleBlur = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
       setIsFocused(false);
-      // Format to 2 decimals on blur
+      // Format to 2 decimals on blur (don't call onValueChange - handleChange already did)
       const parsed = parseFloat(displayValue.replace(/,/g, ''));
       if (!isNaN(parsed) && parsed !== 0) {
         setDisplayValue(parsed.toFixed(2));
-        onValueChange?.(parsed);
       } else if (parsed === 0) {
-        setDisplayValue(''); // Show empty for 0, not 0.00
-        onValueChange?.(0);
+        setDisplayValue('0.00'); // Show 0.00 for zero
       } else {
         setDisplayValue('');
-        onValueChange?.(0);
       }
       onBlur?.(e);
-    }, [displayValue, onValueChange, onBlur]);
+    }, [displayValue, onBlur]);
 
     const baseInput = `block w-full rounded-lg shadow-sm ${showPrefix ? 'pl-8' : ''} ${
       hasError
