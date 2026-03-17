@@ -48,6 +48,20 @@ export default function DividendIncomeForm({ values, onChange }: DividendIncomeF
         </p>
       </div>
 
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="flex items-start">
+          <Info className="w-5 h-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" />
+          <div className="text-sm text-blue-800">
+            <p className="font-semibold mb-1">Where dividends go:</p>
+            <ul className="list-disc list-inside space-y-1">
+              <li><strong>Ordinary dividends</strong> — taxed as regular income</li>
+              <li><strong>Qualified dividends</strong> — taxed at lower capital gains rates (0%, 15%, or 20%)</li>
+              <li><strong>Capital gain distributions</strong> — from mutual funds, goes to Schedule D</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
       <div className="flex justify-between items-center">
         <button
           type="button"
@@ -149,6 +163,9 @@ export default function DividendIncomeForm({ values, onChange }: DividendIncomeF
                   placeholder="0.00"
                 />
               </div>
+              <p className="mt-1 text-xs text-slate-500">
+                Usually less than or equal to ordinary — taxed at lower rates
+              </p>
             </div>
 
             {/* Box 2 - Capital Gain Distributions */}
@@ -167,6 +184,9 @@ export default function DividendIncomeForm({ values, onChange }: DividendIncomeF
                   placeholder="0.00"
                 />
               </div>
+              <p className="mt-1 text-xs text-slate-500">
+                From mutual funds/ETFs — goes to Schedule D
+              </p>
             </div>
 
             {/* Box 3 - Exempt Interest Dividends */}
@@ -185,6 +205,9 @@ export default function DividendIncomeForm({ values, onChange }: DividendIncomeF
                   placeholder="0.00"
                 />
               </div>
+              <p className="mt-1 text-xs text-slate-500">
+                From municipal bonds — tax-exempt but affects AMT
+              </p>
             </div>
 
             {/* Box 6 - Foreign Tax Paid */}
@@ -203,6 +226,9 @@ export default function DividendIncomeForm({ values, onChange }: DividendIncomeF
                   placeholder="0.00"
                 />
               </div>
+              <p className="mt-1 text-xs text-slate-500">
+                Can deduct or claim as credit (Form 1116)
+              </p>
             </div>
           </div>
         </div>

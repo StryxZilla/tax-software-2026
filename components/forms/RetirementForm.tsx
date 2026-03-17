@@ -180,6 +180,9 @@ export default function RetirementForm({
               placeholder="0.00"
             />
             <ValidationError message={getFieldError('retirement-traditional-amount')} />
+            {!getFieldError('retirement-traditional-amount') && (
+              <p className="mt-1 text-xs text-slate-500">2025 limit: $7,000 ($8,000 if age 50+) — found on Form 5498</p>
+            )}
           </div>
 
           <div className="flex items-center space-x-3 pt-8">
@@ -192,6 +195,7 @@ export default function RetirementForm({
             />
             <label htmlFor="isDeductible" className="text-sm font-semibold text-slate-700">
               Contribution is deductible
+              <p className="text-xs text-slate-500 font-normal mt-0.5">Deductibility depends on income and whether you have a workplace retirement plan</p>
             </label>
           </div>
         </div>
@@ -211,6 +215,9 @@ export default function RetirementForm({
             placeholder="0.00"
           />
           <ValidationError message={getFieldError('retirement-roth-amount')} />
+          {!getFieldError('retirement-roth-amount') && (
+            <p className="mt-1 text-xs text-slate-500">2025 limit: $7,000 ($8,000 if age 50+). Phase-out starts at $150,000 (single) / $236,000 (MFJ).</p>
+          )}
         </div>
 
         {/* Combined limit warning */}
@@ -223,6 +230,10 @@ export default function RetirementForm({
       <div className="card-premium p-6 space-y-6">
         <div>
           <h3 className="text-lg font-semibold text-slate-800">Form 8606 — Nondeductible IRAs</h3>
+          <p className="text-sm text-slate-500 mt-1">
+            Complete this section if you made nondeductible (after-tax) IRA contributions or did a Roth conversion.
+            The IRS uses the pro-rata rule to determine what portion of conversions and distributions are taxable.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -238,6 +249,7 @@ export default function RetirementForm({
               placeholder="0.00"
             />
             <ValidationError message={getFieldError('retirement-8606-nondeductible')} />
+            <p className="mt-1 text-xs text-slate-500">After-tax contributions made to a Traditional IRA this year</p>
           </div>
 
           {/* Line 2 */}
@@ -252,6 +264,7 @@ export default function RetirementForm({
               placeholder="0.00"
             />
             <ValidationError message={getFieldError('retirement-8606-priorBasis')} />
+            <p className="mt-1 text-xs text-slate-500">Total nondeductible contributions from all prior years (from your last Form 8606)</p>
           </div>
 
           {/* Line 4 */}
@@ -266,6 +279,7 @@ export default function RetirementForm({
               placeholder="0.00"
             />
             <ValidationError message={getFieldError('retirement-8606-conversions')} />
+            <p className="mt-1 text-xs text-slate-500">Total converted from Traditional IRA to Roth IRA during 2025</p>
           </div>
 
           {/* Line 5 — PREVIOUSLY MISSING FROM UI */}
@@ -280,6 +294,7 @@ export default function RetirementForm({
               placeholder="0.00"
             />
             <ValidationError message={getFieldError('retirement-8606-distributions')} />
+            <p className="mt-1 text-xs text-slate-500">Regular withdrawals taken from Traditional IRA (excluding conversions) — from Form 1099-R</p>
           </div>
 
           {/* Line 7 */}
@@ -294,6 +309,7 @@ export default function RetirementForm({
               placeholder="0.00"
             />
             <ValidationError message={getFieldError('retirement-8606-balance')} />
+            <p className="mt-1 text-xs text-slate-500">Combined year-end value of all Traditional, SEP, and SIMPLE IRAs — include all accounts</p>
           </div>
         </div>
 

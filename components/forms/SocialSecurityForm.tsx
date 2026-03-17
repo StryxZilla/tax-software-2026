@@ -206,6 +206,9 @@ export default function SocialSecurityForm({ values = [], onChange, onValidation
                       placeholder="0.00"
                     />
                     <ValidationError message={getFieldError('ssn-benefits')} />
+                    <p className="mt-2 text-xs text-slate-500">
+                      Find this on your SSA-1099 form in Box 1 (Net Benefits)
+                    </p>
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">
@@ -217,6 +220,9 @@ export default function SocialSecurityForm({ values = [], onChange, onValidation
                       placeholder="0.00"
                     />
                     <ValidationError message={getFieldError('ssn-taxable')} />
+                    <p className="mt-2 text-xs text-slate-500">
+                      Box 2 from SSA-1099 (or enter 0 if not taxable)
+                    </p>
                   </div>
                 </div>
               </div>
@@ -233,14 +239,62 @@ export default function SocialSecurityForm({ values = [], onChange, onValidation
                     placeholder="0.00"
                   />
                   <ValidationError message={getFieldError('ssn-withheld')} />
+                  <p className="mt-2 text-xs text-slate-500">
+                    Box 4 from SSA-1099 (federal income tax withheld)
+                  </p>
                 </div>
               </div>
 
               {/* Helpful information */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-start space-x-3">
+                  <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h5 className="font-semibold text-blue-900 mb-1 text-sm">About Social Security Benefits</h5>
+                    <p className="text-xs text-blue-800">
+                      You'll receive Form SSA-1099 if you received Social Security benefits during the year. 
+                      A portion of your benefits may be taxable depending on your total income. Use the 
+                      worksheet in the tax instructions to calculate taxable benefits.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       )}
+
+      {/* Helpful tips */}
+      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+        <h4 className="font-semibold text-amber-900 mb-2 flex items-center space-x-2">
+          <Info className="w-5 h-5" />
+          <span>How Social Security Benefits Are Taxed</span>
+        </h4>
+        <div className="text-sm text-amber-800 space-y-2">
+          <p>Your benefits may be taxable if:</p>
+          <ul className="list-disc list-inside space-y-1 ml-2">
+            <li>Your combined income (AGI + 50% of SS benefits + tax-exempt interest) exceeds:</li>
+            <li className="ml-4">- <strong>$25,000</strong> for single filers</li>
+            <li className="ml-4">- <strong>$32,000</strong> for married filing jointly</li>
+            <li className="ml-4">- <strong>$25,000</strong> for married filing separately (if lived apart)</li>
+          </ul>
+          <p className="mt-2">Up to 85% of your benefits can be taxed if your income exceeds these thresholds.</p>
+        </div>
+      </div>
+
+      {/* Tax-exempt interest note */}
+      <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+        <h4 className="font-semibold text-slate-900 mb-2 flex items-center space-x-2">
+          <Info className="w-5 h-5 text-slate-600" />
+          <span>Where to Find Your Benefits</span>
+        </h4>
+        <p className="text-sm text-slate-700">
+          Your benefits are reported on <strong>Form SSA-1099</strong> (Social Security Benefit Statement). 
+          You'll receive this by mail in January for the prior year's benefits. You can also access it online 
+          at <a href="https://www.ssa.gov" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">ssa.gov</a> 
+          through your my Social Security account.
+        </p>
+      </div>
     </div>
   );
 }

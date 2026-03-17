@@ -158,6 +158,9 @@ export default function Form1099KList({ values = [], onChange }: Form1099KListPr
                   placeholder="0.00"
                 />
               </div>
+              <p className="mt-1 text-xs text-slate-500">
+                This is the TOTAL processed, NOT your profit. Business expenses reduce taxable income.
+              </p>
             </div>
           </div>
         </div>
@@ -169,6 +172,9 @@ export default function Form1099KList({ values = [], onChange }: Form1099KListPr
             <span className="text-slate-600">Total 1099-K Gross:</span>
             <span className="font-semibold text-slate-800">${total1099K.toLocaleString()}</span>
           </div>
+          <p className="mt-2 text-xs text-slate-500">
+            Note: This is gross payments. Your actual business income (profit) is gross minus expenses.
+          </p>
         </div>
       )}
     </div>

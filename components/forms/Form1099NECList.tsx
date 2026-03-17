@@ -158,6 +158,9 @@ export default function Form1099NECList({ values = [], onChange }: Form1099NECLi
                   placeholder="0.00"
                 />
               </div>
+              <p className="mt-1 text-xs text-slate-500">
+                Total payments received for services (not employees) — goes to Schedule C, Line 3
+              </p>
             </div>
           </div>
         </div>

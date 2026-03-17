@@ -138,6 +138,9 @@ export default function InterestIncomeForm({ values, onChange, onValidationChang
         {process.env.NEXT_PUBLIC_FEATURE_OCR_UPLOAD === 'true' && (
           <>
             <h3 className="text-lg font-semibold text-slate-900 mb-4">Upload 1099-INT Image</h3>
+            <p className="text-sm text-slate-600 mb-4">
+              Take a photo of your 1099-INT form or upload a PDF, and we'll automatically extract the data.
+            </p>
             <DocumentUpload
               onExtract={extract1099INTData}
               buildReport={build1099IntExtractionReport}
@@ -249,6 +252,9 @@ export default function InterestIncomeForm({ values, onChange, onValidationChang
                       className={getInputClassName(`interest-${index}-payer`)}
                     />
                     <ValidationError message={getFieldError(`interest-${index}-payer`)} />
+                    {!getFieldError(`interest-${index}-payer`) && (
+                      <p className="mt-1 text-xs text-slate-500 italic">Find this in the top section of your 1099-INT form</p>
+                    )}
                   </div>
                 </div>
 
@@ -278,6 +284,9 @@ export default function InterestIncomeForm({ values, onChange, onValidationChang
                       />
                     </div>
                     <ValidationError message={getFieldError(`interest-${index}-amount`)} />
+                    {!getFieldError(`interest-${index}-amount`) && (
+                      <p className="mt-3 text-xs text-slate-600">This is the total interest income shown in Box 1 of your 1099-INT</p>
+                    )}
                   </div>
                 </div>
 
@@ -308,6 +317,7 @@ export default function InterestIncomeForm({ values, onChange, onValidationChang
                           className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                         />
                       </div>
+                      <p className="mt-1 text-xs text-slate-500">Penalty for early withdrawal of funds</p>
                     </div>
 
                     {/* Box 3: US Savings Bonds Interest */}
@@ -329,6 +339,7 @@ export default function InterestIncomeForm({ values, onChange, onValidationChang
                           className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                         />
                       </div>
+                      <p className="mt-1 text-xs text-slate-500">Interest from US Savings Bonds/Treasury obligations</p>
                     </div>
 
                     {/* Box 4: Tax-Exempt Interest */}
@@ -350,6 +361,7 @@ export default function InterestIncomeForm({ values, onChange, onValidationChang
                           className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                         />
                       </div>
+                      <p className="mt-1 text-xs text-slate-500">Tax-exempt municipal bond interest</p>
                     </div>
 
                     {/* Box 5: Investment Expenses */}
@@ -371,6 +383,7 @@ export default function InterestIncomeForm({ values, onChange, onValidationChang
                           className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                         />
                       </div>
+                      <p className="mt-1 text-xs text-slate-500">Deductible investment expenses</p>
                     </div>
 
                     {/* Box 6: Foreign Tax Paid */}
@@ -392,10 +405,59 @@ export default function InterestIncomeForm({ values, onChange, onValidationChang
                           className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500"
                         />
                       </div>
+                      <p className="mt-1 text-xs text-slate-500">Foreign taxes paid (may be deductible)</p>
                     </div>
                   </div>
                 </div>
 
+                {/* Helpful information */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-start space-x-3">
+                    <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <h5 className="font-semibold text-blue-900 mb-1 text-sm">About Form 1099-INT</h5>
+                      <p className="text-xs text-blue-800">
+                        You'll receive this form from any financial institution where you earned more than $10 in interest during 2025. 
+                        This includes savings accounts, checking accounts, CDs, and money market accounts. The amount in Box 1 is taxable 
+                        as ordinary income.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Helpful tips */}
+      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+        <h4 className="font-semibold text-amber-900 mb-2 flex items-center space-x-2">
+          <Info className="w-5 h-5" />
+          <span>Common Sources of Interest Income</span>
+        </h4>
+        <ul className="text-sm text-amber-800 space-y-1 list-disc list-inside">
+          <li><strong>Savings accounts</strong> - Traditional savings, high-yield savings</li>
+          <li><strong>Checking accounts</strong> - Interest-bearing checking accounts</li>
+          <li><strong>Certificates of Deposit (CDs)</strong> - Short-term and long-term CDs</li>
+          <li><strong>Money Market Accounts</strong> - Bank money market accounts</li>
+          <li><strong>Bonds</strong> - Corporate bonds, municipal bonds (may be tax-exempt)</li>
+          <li><strong>U.S. Treasury Securities</strong> - T-Bills, T-Notes, T-Bonds, I-Bonds, EE Bonds</li>
+        </ul>
+      </div>
+
+      {/* Tax-exempt interest note */}
+      <div className="bg-slate-50 border border-slate-200 rounded-lg p-4">
+        <h4 className="font-semibold text-slate-900 mb-2 flex items-center space-x-2">
+          <Info className="w-5 h-5 text-slate-600" />
+          <span>Tax-Exempt Interest</span>
+        </h4>
+        <p className="text-sm text-slate-700">
+          If you have <strong>tax-exempt interest</strong> (such as from municipal bonds), enter it in Box 4 above. 
+          Tax-exempt interest is generally not taxable for federal purposes, but must still be reported on your return 
+          and is used to determine if your Social Security benefits are taxable.
+        </p>
+      </div>
     </div>
   );
 }
