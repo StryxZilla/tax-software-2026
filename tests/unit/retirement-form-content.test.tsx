@@ -54,6 +54,6 @@ describe('RetirementForm help content', () => {
       />,
     )
 
-    expect(html).toMatch(/Nondeductible Contributions — Current Year[\s\S]*value=""/)
+    expect(html).toMatch(/Nondeductible Contributions - Current Year[\s\S]*value="0\.00"/)
   })
 })

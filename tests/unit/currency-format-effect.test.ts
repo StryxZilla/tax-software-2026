@@ -14,8 +14,8 @@ describe('formatCurrency', () => {
     expect(formatCurrency(1234.567)).toBe('1234.57')
   })
 
-  it('returns empty string for 0', () => {
-    expect(formatCurrency(0)).toBe('')
+  it('returns 0.00 for 0', () => {
+    expect(formatCurrency(0)).toBe('0.00')
   })
 
   it('returns empty string for undefined', () => {

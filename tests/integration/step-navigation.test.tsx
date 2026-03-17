@@ -21,8 +21,8 @@ describe('WizardNavigation — step indicators', () => {
         completedSteps={new Set()}
       />,
     )
-    expect(screen.getByText(/Step 1 of 13/i)).toBeInTheDocument()
-    expect(screen.getByText(/8% Complete/i)).toBeInTheDocument()
+    expect(screen.getByText(/Step 1 of 18/i)).toBeInTheDocument()
+    expect(screen.getByText(/6% Complete/i)).toBeInTheDocument()
   })
 
   it('updates progress when step changes', () => {
@@ -33,13 +33,13 @@ describe('WizardNavigation — step indicators', () => {
         completedSteps={new Set(['personal-info', 'dependents'])}
       />,
     )
-    expect(screen.getByText(/Step 3 of 13/i)).toBeInTheDocument()
-    expect(screen.getByText(/23% Complete/i)).toBeInTheDocument()
+    expect(screen.getByText(/Step 3 of 18/i)).toBeInTheDocument()
+    expect(screen.getByText(/17% Complete/i)).toBeInTheDocument()
   })
 })
 
 describe('WizardNavigation — step panel', () => {
-  it('opens step panel on click and lists all 13 steps', async () => {
+  it('opens step panel on click and lists all 18 steps', async () => {
     const user = userEvent.setup()
     render(
       <WizardNavigation
