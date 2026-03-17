@@ -58,5 +58,4 @@ describe('RetirementForm help content', () => {
     expect(html).not.toContain('NaN')
     expect(html).toContain('$7,000')
   })
-  })
 })
