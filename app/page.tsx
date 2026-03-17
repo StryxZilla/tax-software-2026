@@ -789,6 +789,63 @@ function WizardStepContent() {
                 <h3 className="text-2xl font-bold text-slate-900 mb-6 pb-3 border-b-2 border-blue-100">
                   💳 Payments & Withholding
                 </h3>
+
+                {/* Detailed Withholding Breakdown */}
+                <div className="mb-8">
+                  <h4 className="text-lg font-semibold text-slate-700 mb-4">Withholding Breakdown</h4>
+                  <div className="space-y-3">
+                    {/* W-2 Withholding by employer */}
+                    {taxReturn.w2Income.filter(w2 => (w2.federalTaxWithheld || 0) > 0).map((w2, idx) => (
+                      <div key={idx} className="flex justify-between items-center py-2 px-4 bg-teal-50 rounded-lg">
+                        <span className="text-slate-700">
+                          <span className="font-medium">{w2.employer || 'Employer ' + (idx + 1)}</span>
+                          <span className="text-slate-500 text-sm ml-2">(W-2 Federal)</span>
+                        </span>
+                        <span className="font-semibold text-teal-700">${(w2.federalTaxWithheld || 0).toLocaleString()}</span>
+                      </div>
+                    ))}
+                    
+                    {/* Social Security Withholding */}
+                    {taxReturn.socialSecurity?.filter(ss => (ss.federalTaxWithheld || 0) > 0).map((ss, idx) => (
+                      <div key={`ss-${idx}`} className="flex justify-between items-center py-2 px-4 bg-teal-50 rounded-lg">
+                        <span className="text-slate-700">
+                          <span className="font-medium">Social Security</span>
+                          <span className="text-slate-500 text-sm ml-2">(Federal Withholding)</span>
+                        </span>
+                        <span className="font-semibold text-teal-700">${(ss.federalTaxWithheld || 0).toLocaleString()}</span>
+                      </div>
+                    ))}
+                    
+                    {/* 1099-R Withholding */}
+                    {taxReturn.form1099R?.filter(r => (r.federalTaxWithheld || 0) > 0).map((r, idx) => (
+                      <div key={`r-${idx}`} className="flex justify-between items-center py-2 px-4 bg-teal-50 rounded-lg">
+                        <span className="text-slate-700">
+                          <span className="font-medium">{r.payer || 'Retirement'}</span>
+                          <span className="text-slate-500 text-sm ml-2">(1099-R Withholding)</span>
+                        </span>
+                        <span className="font-semibold text-teal-700">${(r.federalTaxWithheld || 0).toLocaleString()}</span>
+                      </div>
+                    ))}
+                    
+                    {/* 1099-NEC Withholding */}
+                    {taxReturn.form1099NEC?.filter(n => (n.federalTaxWithheld || 0) > 0).map((nec, idx) => (
+                      <div key={`nec-${idx}`} className="flex justify-between items-center py-2 px-4 bg-teal-50 rounded-lg">
+                        <span className="text-slate-700">
+                          <span className="font-medium">{nec.payer || '1099-NEC'}</span>
+                          <span className="text-slate-500 text-sm ml-2">(Federal Withholding)</span>
+                        </span>
+                        <span className="font-semibold text-teal-700">${(nec.federalTaxWithheld || 0).toLocaleString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {/* Total Withholding */}
+                  <div className="flex justify-between items-center mt-4 pt-4 border-t-2 border-slate-200">
+                    <span className="text-lg font-bold text-slate-900">Total Federal Withholding</span>
+                    <span className="text-2xl font-bold text-teal-700">${taxCalculation.federalTaxWithheld.toLocaleString()}</span>
+                  </div>
+                </div>
+
                 <dl className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-xl p-5 border border-teal-100">
                     <dt className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">
