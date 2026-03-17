@@ -897,6 +897,24 @@ function WizardStepContent() {
                 
                 return (
                   <div className="space-y-6">
+                    {/* Underwithholding Warning - show if applicable */}
+                    {insights.underwithholding?.hasUnderwithholding && (
+                      <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-6">
+                        <div className="flex items-start gap-3">
+                          <div className="text-2xl">⚠️</div>
+                          <div>
+                            <h4 className="text-lg font-bold text-amber-800">Underwithholding Detected</h4>
+                            <p className="text-amber-700 mt-2">
+                              {insights.underwithholding.message}
+                            </p>
+                            <p className="text-amber-600 text-sm mt-2">
+                              This is likely why you owe money and may result in underpayment penalties. Consider making quarterly estimated tax payments next year.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="card-premium p-8 bg-gradient-to-br from-violet-50 to-purple-50 border-violet-200">
                       <h3 className="text-2xl font-bold text-slate-900 mb-6 pb-3 border-b-2 border-violet-100">
                         📈 Tax Planning Insights

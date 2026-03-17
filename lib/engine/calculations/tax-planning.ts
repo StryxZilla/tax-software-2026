@@ -246,6 +246,12 @@ export function calculateTaxRateAnalysis(taxCalculation: {
 export interface TaxPlanningInsights {
   retirement: RetirementAnalysis;
   taxRates: TaxRateAnalysis;
+  underwithholding?: {
+    hasUnderwithholding: boolean;
+    totalWithholding: number;
+    nonW2Income: number;
+    message: string;
+  };
 }
 
 export function calculateTaxPlanningInsights(taxReturn: TaxReturn, taxCalculation: {
@@ -301,6 +307,41 @@ export function calculateTaxPlanningInsights(taxReturn: TaxReturn, taxCalculatio
   return {
     retirement,
     taxRates,
+    underwithholding: calculateUnderwithholding(taxReturn, taxCalculation),
+  };
+}
+
+/**
+ * Calculate underwithholding insight
+ * Identifies if user has income without automatic withholding
+ */
+function calculateUnderwithholding(taxReturn: TaxReturn, taxCalculation: { agi: number; totalTax: number; }): { hasUnderwithholding: boolean; totalWithholding: number; nonW2Income: number; message: string } {
+  // Calculate W-2 withholding
+  const w2Withholding = (taxReturn.w2Income || []).reduce((sum, w2) => sum + (w2.federalTaxWithheld || 0), 0);
+  
+  // Calculate non-W-2 income (income that typically doesn't have withholding)
+  const interestIncome = (taxReturn.interest || []).reduce((sum, i) => sum + (i.amount || 0), 0);
+  const dividendIncome = (taxReturn.dividends || []).reduce((sum, d) => sum + (d.ordinaryDividends || 0), 0);
+  const capitalGains = (taxReturn.capitalGains || []).reduce((sum, cg) => sum + ((cg.proceeds || 0) - (cg.costBasis || 0)), 0);
+  const selfEmploymentIncome = taxReturn.selfEmployment ? 
+    ((taxReturn.selfEmployment.grossReceipts || 0) - (taxReturn.selfEmployment.returns || 0)) : 0;
+  const necIncome = (taxReturn.form1099NEC || []).reduce((sum, n) => sum + (n.nonEmployeeCompensation || 0), 0);
+  
+  const nonW2Income = Math.max(0, interestIncome + dividendIncome + capitalGains + selfEmploymentIncome + necIncome);
+  
+  // If user has significant non-W-2 income but little withholding
+  const hasUnderwithholding = nonW2Income > 10000 && w2Withholding < (taxCalculation.totalTax * 0.8);
+  
+  let message = '';
+  if (hasUnderwithholding) {
+    message = `You have $${nonW2Income.toLocaleString()} in non-W-2 income (interest, dividends, self-employment) but only $${w2Withholding.toLocaleString()} in withholding. Consider making quarterly estimated tax payments to avoid penalties.`;
+  }
+  
+  return {
+    hasUnderwithholding,
+    totalWithholding: w2Withholding,
+    nonW2Income,
+    message,
   };
 }
 
