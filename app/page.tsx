@@ -679,9 +679,9 @@ function WizardStepContent() {
                 <div className="mb-8">
                   <h4 className="text-lg font-semibold text-slate-700 mb-4">Tax Liability Breakdown</h4>
                   <div className="space-y-3">
-                    {/* Regular Tax */}
+                    {/* Income Tax */}
                     <div className="flex justify-between items-center py-2 px-4 bg-slate-50 rounded-lg">
-                      <span className="text-slate-700">Regular Income Tax</span>
+                      <span className="text-slate-700">Income Tax (from tax brackets)</span>
                       <span className="font-semibold text-slate-900">${taxCalculation.regularTax.toLocaleString()}</span>
                     </div>
                     
@@ -741,7 +741,7 @@ function WizardStepContent() {
 
                 <dl className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="bg-gradient-to-br from-slate-50 to-gray-100 rounded-xl p-5 border border-slate-200">
-                    <dt className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">Regular Tax</dt>
+                    <dt className="text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2">Income Tax</dt>
                     <dd className="text-4xl font-bold text-slate-900 currency">
                       ${taxCalculation.regularTax.toLocaleString()}
                     </dd>
@@ -787,12 +787,12 @@ function WizardStepContent() {
 
               <div className="card-premium p-8">
                 <h3 className="text-2xl font-bold text-slate-900 mb-6 pb-3 border-b-2 border-blue-100">
-                  💳 Payments & Withholding
+                  💳 Withholding & Payments
                 </h3>
 
-                {/* Detailed Withholding Breakdown */}
+                {/* Withholding Breakdown - HEADLINE */}
                 <div className="mb-8">
-                  <h4 className="text-lg font-semibold text-slate-700 mb-4">Withholding Breakdown</h4>
+                  <h4 className="text-lg font-semibold text-slate-700 mb-4">Withholding Breakdown (what you paid)</h4>
                   <div className="space-y-3">
                     {/* W-2 Withholding by employer */}
                     {taxReturn.w2Income.filter(w2 => (w2.federalTaxWithheld || 0) > 0).map((w2, idx) => (
