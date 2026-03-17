@@ -787,21 +787,37 @@ function WizardStepContent() {
 
               <div className="card-premium p-8">
                 <h3 className="text-2xl font-bold text-slate-900 mb-6 pb-3 border-b-2 border-blue-100">
-                  💳 Withholding & Payments
+                  💳 Payments & Withholding
                 </h3>
 
-                {/* Withholding Breakdown - HEADLINE */}
+                {/* Detailed Withholding Breakdown */}
                 <div className="mb-8">
                   <h4 className="text-lg font-semibold text-slate-700 mb-4">Withholding Breakdown (what you paid)</h4>
                   <div className="space-y-3">
-                    {/* W-2 Withholding by employer */}
-                    {taxReturn.w2Income.filter(w2 => (w2.federalTaxWithheld || 0) > 0).map((w2, idx) => (
-                      <div key={idx} className="flex justify-between items-center py-2 px-4 bg-teal-50 rounded-lg">
-                        <span className="text-slate-700">
-                          <span className="font-medium">{w2.employer || 'Employer ' + (idx + 1)}</span>
-                          <span className="text-slate-500 text-sm ml-2">(W-2 Federal)</span>
-                        </span>
-                        <span className="font-semibold text-teal-700">${(w2.federalTaxWithheld || 0).toLocaleString()}</span>
+                    {/* W-2 Withholding by employer - show ALL withholding from W-2 */}
+                    {taxReturn.w2Income.filter(w2 => ((w2.federalTaxWithheld || 0) > 0 || (w2.socialSecurityTaxWithheld || 0) > 0 || (w2.medicareTaxWithheld || 0) > 0)).map((w2, idx) => (
+                      <div key={idx} className="py-2 px-4 bg-teal-50 rounded-lg space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="font-medium text-slate-800">{w2.employer || 'Employer ' + (idx + 1)}</span>
+                        </div>
+                        {(w2.federalTaxWithheld || 0) > 0 && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-slate-600 ml-2">Federal Income Tax (Box 2)</span>
+                            <span className="font-semibold text-teal-700">${(w2.federalTaxWithheld || 0).toLocaleString()}</span>
+                          </div>
+                        )}
+                        {(w2.socialSecurityTaxWithheld || 0) > 0 && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-slate-600 ml-2">Social Security Tax (Box 4)</span>
+                            <span className="font-semibold text-slate-600">${(w2.socialSecurityTaxWithheld || 0).toLocaleString()}</span>
+                          </div>
+                        )}
+                        {(w2.medicareTaxWithheld || 0) > 0 && (
+                          <div className="flex justify-between text-sm">
+                            <span className="text-slate-600 ml-2">Medicare Tax (Box 6)</span>
+                            <span className="font-semibold text-slate-600">${(w2.medicareTaxWithheld || 0).toLocaleString()}</span>
+                          </div>
+                        )}
                       </div>
                     ))}
                     
