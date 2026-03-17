@@ -18,6 +18,15 @@ const DISTRIBUTION_CODES = [
   { value: '7', label: '7 - Normal distribution' },
   { value: '8', label: '8 - Excess contribution' },
   { value: 'A', label: 'A - Annuity' },
+  { value: 'G', label: 'G - Direct rollover' },
+  { value: 'H', label: 'H - Required minimum distribution' },
+  { value: 'L', label: 'L - Loans treated as distribution' },
+  { value: 'N', label: 'N - Recharacterized IRA' },
+  { value: 'P', label: 'P - Excess IRA contribution' },
+  { value: 'R', label: 'R - Primary insurance benefit' },
+  { value: 'S', label: 'S - Early SIMPLE IRA distribution' },
+  { value: 'T', label: 'T - Roth conversion' },
+  { value: 'W', label: 'W - Weather related' },
 ];
 
 export default function RetirementDistributionForm({ values = [], onChange }: Props) {
