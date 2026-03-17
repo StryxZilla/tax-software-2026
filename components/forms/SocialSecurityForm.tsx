@@ -5,6 +5,7 @@ import { SocialSecurityBenefits } from '../../types/tax-types';
 import { Landmark, DollarSign, TrendingUp, Info, AlertCircle } from 'lucide-react';
 import { validateSocialSecurity } from '../../lib/validation/form-validation';
 import ValidationError from '../common/ValidationError';
+import CurrencyInput from '../common/CurrencyInput';
 
 function getDefaultSocialSecurity(): SocialSecurityBenefits {
   return {
@@ -199,19 +200,11 @@ export default function SocialSecurityForm({ values, onChange, onValidationChang
                     <label className="block text-sm font-semibold text-slate-700 mb-2">
                       Gross Benefits Received (Box 1) <span className="text-red-500">*</span>
                     </label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 font-bold text-xl">$</span>
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={ssn.benefitsReceived || ''}
-                        onChange={(e) => updateSocialSecurity({ benefitsReceived: parseFloat(e.target.value) || 0 })}
-                        onBlur={() => touchField('ssn-benefits')}
-                        className={`pl-10 text-2xl font-bold py-4 ${getInputClassName('ssn-benefits')}`}
-                        placeholder="0.00"
-                      />
-                    </div>
+                    <CurrencyInput
+                      value={ssn.benefitsReceived}
+                      onValueChange={(val) => updateSocialSecurity({ benefitsReceived: val })}
+                      placeholder="0.00"
+                    />
                     <ValidationError message={getFieldError('ssn-benefits')} />
                     <p className="mt-2 text-xs text-slate-500">
                       Find this on your SSA-1099 form in Box 1 (Net Benefits)
@@ -221,19 +214,11 @@ export default function SocialSecurityForm({ values, onChange, onValidationChang
                     <label className="block text-sm font-semibold text-slate-700 mb-2">
                       Taxable Benefits (Box 2)
                     </label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 font-bold text-xl">$</span>
-                      <input
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        value={ssn.taxableBenefits || ''}
-                        onChange={(e) => updateSocialSecurity({ taxableBenefits: parseFloat(e.target.value) || 0 })}
-                        onBlur={() => touchField('ssn-taxable')}
-                        className={`pl-10 text-2xl font-bold py-4 ${getInputClassName('ssn-taxable')}`}
-                        placeholder="0.00"
-                      />
-                    </div>
+                    <CurrencyInput
+                      value={ssn.taxableBenefits}
+                      onValueChange={(val) => updateSocialSecurity({ taxableBenefits: val })}
+                      placeholder="0.00"
+                    />
                     <ValidationError message={getFieldError('ssn-taxable')} />
                     <p className="mt-2 text-xs text-slate-500">
                       Box 2 from SSA-1099 (or enter 0 if not taxable)
@@ -248,19 +233,11 @@ export default function SocialSecurityForm({ values, onChange, onValidationChang
                   <label className="block text-sm font-semibold text-slate-700 mb-2">
                     Federal Tax Withheld (Box 4)
                   </label>
-                  <div className="relative max-w-md">
-                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 font-bold text-xl">$</span>
-                    <input
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={ssn.federalTaxWithheld || ''}
-                      onChange={(e) => updateSocialSecurity({ federalTaxWithheld: parseFloat(e.target.value) || 0 })}
-                      onBlur={() => touchField('ssn-withheld')}
-                      className={`pl-10 text-2xl font-bold py-4 ${getInputClassName('ssn-withheld')}`}
-                      placeholder="0.00"
-                    />
-                  </div>
+                  <CurrencyInput
+                    value={ssn.federalTaxWithheld}
+                    onValueChange={(val) => updateSocialSecurity({ federalTaxWithheld: val })}
+                    placeholder="0.00"
+                  />
                   <ValidationError message={getFieldError('ssn-withheld')} />
                   <p className="mt-2 text-xs text-slate-500">
                     Box 4 from SSA-1099 (federal income tax withheld)

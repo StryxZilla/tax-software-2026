@@ -5,6 +5,7 @@ import { RetirementIncome, DistributionCode } from '../../types/tax-types';
 import { Plus, Trash2, Landmark, DollarSign, TrendingUp, Info, AlertCircle } from 'lucide-react';
 import { validateRetirementIncome } from '../../lib/validation/form-validation';
 import ValidationError from '../common/ValidationError';
+import CurrencyInput from '../common/CurrencyInput';
 
 const DISTRIBUTION_CODES: { value: DistributionCode; label: string }[] = [
   { value: '1-Early distribution', label: '1 - Early distribution (before age 59½)' },
@@ -243,38 +244,22 @@ export default function RetirementIncomeForm({ values, onChange, onValidationCha
                       <label className="block text-sm font-semibold text-slate-700 mb-2">
                         Gross Distribution (Box 1) <span className="text-red-500">*</span>
                       </label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 font-bold">$</span>
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          value={retirement.grossDistribution || ''}
-                          onChange={(e) => updateRetirementIncome(index, { grossDistribution: parseFloat(e.target.value) || 0 })}
-                          onBlur={() => touchField(`retirement-${index}-gross`)}
-                          className={`pl-8 text-xl font-semibold py-3 ${getInputClassName(`retirement-${index}-gross`)}`}
-                          placeholder="0.00"
-                        />
-                      </div>
+                      <CurrencyInput
+                        value={retirement.grossDistribution}
+                        onValueChange={(val) => updateRetirementIncome(index, { grossDistribution: val })}
+                        placeholder="0.00"
+                      />
                       <ValidationError message={getFieldError(`retirement-${index}-gross`)} />
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-slate-700 mb-2">
                         Taxable Amount (Box 2a)
                       </label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 font-bold">$</span>
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          value={retirement.taxableAmount || ''}
-                          onChange={(e) => updateRetirementIncome(index, { taxableAmount: parseFloat(e.target.value) || 0 })}
-                          onBlur={() => touchField(`retirement-${index}-taxable`)}
-                          className={`pl-8 text-xl font-semibold py-3 ${getInputClassName(`retirement-${index}-taxable`)}`}
-                          placeholder="0.00"
-                        />
-                      </div>
+                      <CurrencyInput
+                        value={retirement.taxableAmount}
+                        onValueChange={(val) => updateRetirementIncome(index, { taxableAmount: val })}
+                        placeholder="0.00"
+                      />
                       <ValidationError message={getFieldError(`retirement-${index}-taxable`)} />
                       <p className="mt-1 text-xs text-slate-500">Box 2b should be checked if taxable amount is unknown</p>
                     </div>
@@ -288,38 +273,22 @@ export default function RetirementIncomeForm({ values, onChange, onValidationCha
                       <label className="block text-sm font-semibold text-slate-700 mb-2">
                         Federal Tax Withheld (Box 4)
                       </label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 font-bold">$</span>
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          value={retirement.federalTaxWithheld || ''}
-                          onChange={(e) => updateRetirementIncome(index, { federalTaxWithheld: parseFloat(e.target.value) || 0 })}
-                          onBlur={() => touchField(`retirement-${index}-withheld`)}
-                          className={`pl-8 text-xl font-semibold py-3 ${getInputClassName(`retirement-${index}-withheld`)}`}
-                          placeholder="0.00"
-                        />
-                      </div>
+                      <CurrencyInput
+                        value={retirement.federalTaxWithheld}
+                        onValueChange={(val) => updateRetirementIncome(index, { federalTaxWithheld: val })}
+                        placeholder="0.00"
+                      />
                       <ValidationError message={getFieldError(`retirement-${index}-withheld`)} />
                     </div>
                     <div>
                       <label className="block text-sm font-semibold text-slate-700 mb-2">
                         Employee Contributions (Box 5)
                       </label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 font-bold">$</span>
-                        <input
-                          type="number"
-                          step="0.01"
-                          min="0"
-                          value={retirement.employeeContributions || ''}
-                          onChange={(e) => updateRetirementIncome(index, { employeeContributions: parseFloat(e.target.value) || 0 })}
-                          onBlur={() => touchField(`retirement-${index}-employee`)}
-                          className={`pl-8 text-xl font-semibold py-3 ${getInputClassName(`retirement-${index}-employee`)}`}
-                          placeholder="0.00"
-                        />
-                      </div>
+                      <CurrencyInput
+                        value={retirement.employeeContributions}
+                        onValueChange={(val) => updateRetirementIncome(index, { employeeContributions: val })}
+                        placeholder="0.00"
+                      />
                       <ValidationError message={getFieldError(`retirement-${index}-employee`)} />
                     </div>
                     <div>

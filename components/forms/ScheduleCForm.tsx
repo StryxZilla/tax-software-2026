@@ -337,140 +337,77 @@ export default function ScheduleCForm({ value, onChange, onValidationChange }: S
             <label className="block text-sm font-medium text-gray-700">
               Advertising
             </label>
-            <div className="mt-1 relative rounded-md shadow-sm">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <span className="text-gray-500 sm:text-sm">$</span>
-              </div>
-              <input
-                type="number"
-                value={formData.expenses.advertising}
-                onChange={(e) => updateExpense('advertising', parseFloat(e.target.value) || 0)}
-                min="0"
-                step="0.01"
-                className="block w-full rounded-md border-gray-300 pl-8 focus:border-blue-500 focus:ring-blue-500"
+            <CurrencyInput
+              value={formData.expenses.advertising}
+              onValueChange={(val) => updateExpense('advertising', val)}
               placeholder="0.00"
-              />
-            </div>
+            />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Car and Truck Expenses
             </label>
-            <div className="mt-1 relative rounded-md shadow-sm">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <span className="text-gray-500 sm:text-sm">$</span>
-              </div>
-              <input
-                type="number"
-                value={formData.expenses.carAndTruck}
-                onChange={(e) => updateExpense('carAndTruck', parseFloat(e.target.value) || 0)}
-                min="0"
-                step="0.01"
-                className="block w-full rounded-md border-gray-300 pl-8 focus:border-blue-500 focus:ring-blue-500"
+            <CurrencyInput
+              value={formData.expenses.carAndTruck}
+              onValueChange={(val) => updateExpense('carAndTruck', val)}
               placeholder="0.00"
-              />
-            </div>
+            />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Commissions and Fees
             </label>
-            <div className="mt-1 relative rounded-md shadow-sm">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <span className="text-gray-500 sm:text-sm">$</span>
-              </div>
-              <input
-                type="number"
-                value={formData.expenses.commissions}
-                onChange={(e) => updateExpense('commissions', parseFloat(e.target.value) || 0)}
-                min="0"
-                step="0.01"
-                className="block w-full rounded-md border-gray-300 pl-8 focus:border-blue-500 focus:ring-blue-500"
+            <CurrencyInput
+              value={formData.expenses.commissions}
+              onValueChange={(val) => updateExpense('commissions', val)}
               placeholder="0.00"
-              />
-            </div>
+            />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Contract Labor
             </label>
-            <div className="mt-1 relative rounded-md shadow-sm">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <span className="text-gray-500 sm:text-sm">$</span>
-              </div>
-              <input
-                type="number"
-                value={formData.expenses.contractLabor}
-                onChange={(e) => updateExpense('contractLabor', parseFloat(e.target.value) || 0)}
-                min="0"
-                step="0.01"
-                className="block w-full rounded-md border-gray-300 pl-8 focus:border-blue-500 focus:ring-blue-500"
+            <CurrencyInput
+              value={formData.expenses.contractLabor}
+              onValueChange={(val) => updateExpense('contractLabor', val)}
               placeholder="0.00"
-              />
-            </div>
+            />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Depletion
             </label>
-            <div className="mt-1 relative rounded-md shadow-sm">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <span className="text-gray-500 sm:text-sm">$</span>
-              </div>
-              <input
-                type="number"
-                value={formData.expenses.depletion}
-                onChange={(e) => updateExpense('depletion', parseFloat(e.target.value) || 0)}
-                min="0"
-                step="0.01"
-                className="block w-full rounded-md border-gray-300 pl-8 focus:border-blue-500 focus:ring-blue-500"
+            <CurrencyInput
+              value={formData.expenses.depletion}
+              onValueChange={(val) => updateExpense('depletion', val)}
               placeholder="0.00"
-              />
-            </div>
+            />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Depreciation
             </label>
-            <div className="mt-1 relative rounded-md shadow-sm">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <span className="text-gray-500 sm:text-sm">$</span>
-              </div>
-              <input
-                type="number"
-                value={formData.expenses.depreciation}
-                onChange={(e) => updateExpense('depreciation', parseFloat(e.target.value) || 0)}
-                min="0"
-                step="0.01"
-                className="block w-full rounded-md border-gray-300 pl-8 focus:border-blue-500 focus:ring-blue-500"
+            <CurrencyInput
+              value={formData.expenses.depreciation}
+              onValueChange={(val) => updateExpense('depreciation', val)}
               placeholder="0.00"
-              />
-            </div>
+            />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Employee Benefit Programs
             </label>
-            <div className="mt-1 relative rounded-md shadow-sm">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <span className="text-gray-500 sm:text-sm">$</span>
-              </div>
-              <input
-                type="number"
-                value={formData.expenses.employeeBenefitPrograms}
-                onChange={(e) => updateExpense('employeeBenefitPrograms', parseFloat(e.target.value) || 0)}
-                min="0"
-                step="0.01"
-                className="block w-full rounded-md border-gray-300 pl-8 focus:border-blue-500 focus:ring-blue-500"
+            <CurrencyInput
+              value={formData.expenses.employeeBenefitPrograms}
+              onValueChange={(val) => updateExpense('employeeBenefitPrograms', val)}
               placeholder="0.00"
-              />
-            </div>
+            />
             <p className="mt-1 text-xs text-gray-500">Health insurance, life insurance, and other employee benefit programs</p>
           </div>
 
@@ -478,20 +415,11 @@ export default function ScheduleCForm({ value, onChange, onValidationChange }: S
             <label className="block text-sm font-medium text-gray-700">
               Pension and Profit-Sharing Plans
             </label>
-            <div className="mt-1 relative rounded-md shadow-sm">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <span className="text-gray-500 sm:text-sm">$</span>
-              </div>
-              <input
-                type="number"
-                value={formData.expenses.pension}
-                onChange={(e) => updateExpense('pension', parseFloat(e.target.value) || 0)}
-                min="0"
-                step="0.01"
-                className="block w-full rounded-md border-gray-300 pl-8 focus:border-blue-500 focus:ring-blue-500"
+            <CurrencyInput
+              value={formData.expenses.pension}
+              onValueChange={(val) => updateExpense('pension', val)}
               placeholder="0.00"
-              />
-            </div>
+            />
             <p className="mt-1 text-xs text-gray-500">Contributions to employee retirement plans (e.g., SEP-IRA, SIMPLE IRA)</p>
           </div>
 
@@ -499,200 +427,110 @@ export default function ScheduleCForm({ value, onChange, onValidationChange }: S
             <label className="block text-sm font-medium text-gray-700">
               Insurance (other than health)
             </label>
-            <div className="mt-1 relative rounded-md shadow-sm">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <span className="text-gray-500 sm:text-sm">$</span>
-              </div>
-              <input
-                type="number"
-                value={formData.expenses.insurance}
-                onChange={(e) => updateExpense('insurance', parseFloat(e.target.value) || 0)}
-                min="0"
-                step="0.01"
-                className="block w-full rounded-md border-gray-300 pl-8 focus:border-blue-500 focus:ring-blue-500"
+            <CurrencyInput
+              value={formData.expenses.insurance}
+              onValueChange={(val) => updateExpense('insurance', val)}
               placeholder="0.00"
-              />
-            </div>
+            />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Interest (Mortgage, Other)
             </label>
-            <div className="mt-1 relative rounded-md shadow-sm">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <span className="text-gray-500 sm:text-sm">$</span>
-              </div>
-              <input
-                type="number"
-                value={formData.expenses.interest}
-                onChange={(e) => updateExpense('interest', parseFloat(e.target.value) || 0)}
-                min="0"
-                step="0.01"
-                className="block w-full rounded-md border-gray-300 pl-8 focus:border-blue-500 focus:ring-blue-500"
+            <CurrencyInput
+              value={formData.expenses.interest}
+              onValueChange={(val) => updateExpense('interest', val)}
               placeholder="0.00"
-              />
-            </div>
+            />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Legal and Professional Services
             </label>
-            <div className="mt-1 relative rounded-md shadow-sm">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <span className="text-gray-500 sm:text-sm">$</span>
-              </div>
-              <input
-                type="number"
-                value={formData.expenses.legal}
-                onChange={(e) => updateExpense('legal', parseFloat(e.target.value) || 0)}
-                min="0"
-                step="0.01"
-                className="block w-full rounded-md border-gray-300 pl-8 focus:border-blue-500 focus:ring-blue-500"
+            <CurrencyInput
+              value={formData.expenses.legal}
+              onValueChange={(val) => updateExpense('legal', val)}
               placeholder="0.00"
-              />
-            </div>
+            />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Office Expense
             </label>
-            <div className="mt-1 relative rounded-md shadow-sm">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <span className="text-gray-500 sm:text-sm">$</span>
-              </div>
-              <input
-                type="number"
-                value={formData.expenses.officeExpense}
-                onChange={(e) => updateExpense('officeExpense', parseFloat(e.target.value) || 0)}
-                min="0"
-                step="0.01"
-                className="block w-full rounded-md border-gray-300 pl-8 focus:border-blue-500 focus:ring-blue-500"
+            <CurrencyInput
+              value={formData.expenses.officeExpense}
+              onValueChange={(val) => updateExpense('officeExpense', val)}
               placeholder="0.00"
-              />
-            </div>
+            />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Rent or Lease
             </label>
-            <div className="mt-1 relative rounded-md shadow-sm">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <span className="text-gray-500 sm:text-sm">$</span>
-              </div>
-              <input
-                type="number"
-                value={formData.expenses.rentLease}
-                onChange={(e) => updateExpense('rentLease', parseFloat(e.target.value) || 0)}
-                min="0"
-                step="0.01"
-                className="block w-full rounded-md border-gray-300 pl-8 focus:border-blue-500 focus:ring-blue-500"
+            <CurrencyInput
+              value={formData.expenses.rentLease}
+              onValueChange={(val) => updateExpense('rentLease', val)}
               placeholder="0.00"
-              />
-            </div>
+            />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Repairs and Maintenance
             </label>
-            <div className="mt-1 relative rounded-md shadow-sm">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <span className="text-gray-500 sm:text-sm">$</span>
-              </div>
-              <input
-                type="number"
-                value={formData.expenses.repairs}
-                onChange={(e) => updateExpense('repairs', parseFloat(e.target.value) || 0)}
-                min="0"
-                step="0.01"
-                className="block w-full rounded-md border-gray-300 pl-8 focus:border-blue-500 focus:ring-blue-500"
+            <CurrencyInput
+              value={formData.expenses.repairs}
+              onValueChange={(val) => updateExpense('repairs', val)}
               placeholder="0.00"
-              />
-            </div>
+            />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Supplies
             </label>
-            <div className="mt-1 relative rounded-md shadow-sm">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <span className="text-gray-500 sm:text-sm">$</span>
-              </div>
-              <input
-                type="number"
-                value={formData.expenses.supplies}
-                onChange={(e) => updateExpense('supplies', parseFloat(e.target.value) || 0)}
-                min="0"
-                step="0.01"
-                className="block w-full rounded-md border-gray-300 pl-8 focus:border-blue-500 focus:ring-blue-500"
+            <CurrencyInput
+              value={formData.expenses.supplies}
+              onValueChange={(val) => updateExpense('supplies', val)}
               placeholder="0.00"
-              />
-            </div>
+            />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Taxes and Licenses
             </label>
-            <div className="mt-1 relative rounded-md shadow-sm">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <span className="text-gray-500 sm:text-sm">$</span>
-              </div>
-              <input
-                type="number"
-                value={formData.expenses.taxes}
-                onChange={(e) => updateExpense('taxes', parseFloat(e.target.value) || 0)}
-                min="0"
-                step="0.01"
-                className="block w-full rounded-md border-gray-300 pl-8 focus:border-blue-500 focus:ring-blue-500"
+            <CurrencyInput
+              value={formData.expenses.taxes}
+              onValueChange={(val) => updateExpense('taxes', val)}
               placeholder="0.00"
-              />
-            </div>
+            />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Travel
             </label>
-            <div className="mt-1 relative rounded-md shadow-sm">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <span className="text-gray-500 sm:text-sm">$</span>
-              </div>
-              <input
-                type="number"
-                value={formData.expenses.travel}
-                onChange={(e) => updateExpense('travel', parseFloat(e.target.value) || 0)}
-                min="0"
-                step="0.01"
-                className="block w-full rounded-md border-gray-300 pl-8 focus:border-blue-500 focus:ring-blue-500"
+            <CurrencyInput
+              value={formData.expenses.travel}
+              onValueChange={(val) => updateExpense('travel', val)}
               placeholder="0.00"
-              />
-            </div>
+            />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Meals and Entertainment
             </label>
-            <div className="mt-1 relative rounded-md shadow-sm">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <span className="text-gray-500 sm:text-sm">$</span>
-              </div>
-              <input
-                type="number"
-                value={formData.expenses.mealsAndEntertainment}
-                onChange={(e) => updateExpense('mealsAndEntertainment', parseFloat(e.target.value) || 0)}
-                min="0"
-                step="0.01"
-                className="block w-full rounded-md border-gray-300 pl-8 focus:border-blue-500 focus:ring-blue-500"
+            <CurrencyInput
+              value={formData.expenses.mealsAndEntertainment}
+              onValueChange={(val) => updateExpense('mealsAndEntertainment', val)}
               placeholder="0.00"
-              />
-            </div>
+            />
             <p className="mt-1 text-xs text-amber-600">
               ⚠️ Only 50% of meals are deductible (calculated automatically)
             </p>
@@ -702,60 +540,33 @@ export default function ScheduleCForm({ value, onChange, onValidationChange }: S
             <label className="block text-sm font-medium text-gray-700">
               Utilities
             </label>
-            <div className="mt-1 relative rounded-md shadow-sm">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <span className="text-gray-500 sm:text-sm">$</span>
-              </div>
-              <input
-                type="number"
-                value={formData.expenses.utilities}
-                onChange={(e) => updateExpense('utilities', parseFloat(e.target.value) || 0)}
-                min="0"
-                step="0.01"
-                className="block w-full rounded-md border-gray-300 pl-8 focus:border-blue-500 focus:ring-blue-500"
+            <CurrencyInput
+              value={formData.expenses.utilities}
+              onValueChange={(val) => updateExpense('utilities', val)}
               placeholder="0.00"
-              />
-            </div>
+            />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Wages (Less Employment Credits)
             </label>
-            <div className="mt-1 relative rounded-md shadow-sm">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <span className="text-gray-500 sm:text-sm">$</span>
-              </div>
-              <input
-                type="number"
-                value={formData.expenses.wages}
-                onChange={(e) => updateExpense('wages', parseFloat(e.target.value) || 0)}
-                min="0"
-                step="0.01"
-                className="block w-full rounded-md border-gray-300 pl-8 focus:border-blue-500 focus:ring-blue-500"
+            <CurrencyInput
+              value={formData.expenses.wages}
+              onValueChange={(val) => updateExpense('wages', val)}
               placeholder="0.00"
-              />
-            </div>
+            />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700">
               Other Expenses
             </label>
-            <div className="mt-1 relative rounded-md shadow-sm">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <span className="text-gray-500 sm:text-sm">$</span>
-              </div>
-              <input
-                type="number"
-                value={formData.expenses.other}
-                onChange={(e) => updateExpense('other', parseFloat(e.target.value) || 0)}
-                min="0"
-                step="0.01"
-                className="block w-full rounded-md border-gray-300 pl-8 focus:border-blue-500 focus:ring-blue-500"
+            <CurrencyInput
+              value={formData.expenses.other}
+              onValueChange={(val) => updateExpense('other', val)}
               placeholder="0.00"
-              />
-            </div>
+            />
           </div>
         </div>
 
