@@ -846,6 +846,168 @@ export default function TaxSummarySidebar() {
               </div>
             )}
 
+            {/* Detailed Income Breakdown */}
+            <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
+              <div className="flex items-center space-x-2 mb-4">
+                <Briefcase className="w-5 h-5 text-blue-600" />
+                <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wide">Income Breakdown</h3>
+              </div>
+              
+              <div className="space-y-3">
+                {/* W-2 Income - List each employer */}
+                {(taxReturn.w2Income || []).filter(w2 => w2.wages > 0).length > 0 && (
+                  <div className="mb-3">
+                    <p className="text-xs font-semibold text-slate-500 uppercase mb-2">W-2 Wages</p>
+                    {(taxReturn.w2Income || []).filter(w2 => w2.wages > 0).map((w2, idx) => (
+                      <div key={idx} className="flex justify-between text-sm py-1">
+                        <span className="text-slate-600">{w2.employer || `Employer ${idx + 1}`}</span>
+                        <span className="font-medium">${w2.wages.toLocaleString()}</span>
+                      </div>
+                    ))}
+                    <div className="flex justify-between text-sm py-1 border-t border-slate-100 mt-2 pt-2 font-semibold">
+                      <span className="text-slate-700">Total W-2</span>
+                      <span className="text-slate-900">${(taxReturn.w2Income || []).reduce((sum, w2) => sum + (w2.wages || 0), 0).toLocaleString()}</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* 1099-NEC */}
+                {(taxReturn.form1099NEC || []).reduce((sum, nec) => sum + (nec.nonEmployeeCompensation || 0), 0) > 0 && (
+                  <div className="flex justify-between text-sm py-1">
+                    <span className="text-slate-600">1099-NEC (Self-Employment)</span>
+                    <span className="font-medium">${(taxReturn.form1099NEC || []).reduce((sum, nec) => sum + (nec.nonEmployeeCompensation || 0), 0).toLocaleString()}</span>
+                  </div>
+                )}
+
+                {/* 1099-K */}
+                {(taxReturn.form1099K || []).reduce((sum, k) => sum + (k.grossAmount || 0), 0) > 0 && (
+                  <div className="flex justify-between text-sm py-1">
+                    <span className="text-slate-600">1099-K (Payment Platforms)</span>
+                    <span className="font-medium">${(taxReturn.form1099K || []).reduce((sum, k) => sum + (k.grossAmount || 0), 0).toLocaleString()}</span>
+                  </div>
+                )}
+
+                {/* Interest */}
+                {(taxReturn.interest || []).reduce((sum, int) => sum + (int.amount || 0), 0) > 0 && (
+                  <div className="flex justify-between text-sm py-1">
+                    <span className="text-slate-600">Interest Income</span>
+                    <span className="font-medium">${(taxReturn.interest || []).reduce((sum, int) => sum + (int.amount || 0), 0).toLocaleString()}</span>
+                  </div>
+                )}
+
+                {/* Dividends */}
+                {(taxReturn.dividends || []).reduce((sum, div) => sum + (div.ordinaryDividends || 0), 0) > 0 && (
+                  <div className="flex justify-between text-sm py-1">
+                    <span className="text-slate-600">Dividend Income</span>
+                    <span className="font-medium">${(taxReturn.dividends || []).reduce((sum, div) => sum + (div.ordinaryDividends || 0), 0).toLocaleString()}</span>
+                  </div>
+                )}
+
+                {/* Capital Gains */}
+                {(taxReturn.capitalGains || []).reduce((sum, cg) => sum + ((cg.proceeds || 0) - (cg.costBasis || 0)), 0) > 0 && (
+                  <div className="flex justify-between text-sm py-1">
+                    <span className="text-slate-600">Capital Gains</span>
+                    <span className="font-medium">${(taxReturn.capitalGains || []).reduce((sum, cg) => sum + ((cg.proceeds || 0) - (cg.costBasis || 0)), 0).toLocaleString()}</span>
+                  </div>
+                )}
+
+                {/* Self-Employment */}
+                {taxReturn.selfEmployment && (taxReturn.selfEmployment.grossReceipts || 0) > 0 && (
+                  <div className="flex justify-between text-sm py-1">
+                    <span className="text-slate-600">Self-Employment Income</span>
+                    <span className="font-medium">${((taxReturn.selfEmployment.grossReceipts || 0) - (taxReturn.selfEmployment.returns || 0) - (taxReturn.selfEmployment.costOfGoodsSold || 0)).toLocaleString()}</span>
+                  </div>
+                )}
+
+                {/* Social Security */}
+                {(taxReturn.socialSecurity || []).reduce((sum, ss) => sum + (ss.benefitsReceived || 0), 0) > 0 && (
+                  <div className="flex justify-between text-sm py-1">
+                    <span className="text-slate-600">Social Security Benefits</span>
+                    <span className="font-medium">${(taxReturn.socialSecurity || []).reduce((sum, ss) => sum + (ss.benefitsReceived || 0), 0).toLocaleString()}</span>
+                  </div>
+                )}
+
+                {/* Rental Income */}
+                {(taxReturn.rentalProperties || []).reduce((sum, prop) => sum + ((prop.rentalIncome || 0) - (prop.expenses || 0)), 0) > 0 && (
+                  <div className="flex justify-between text-sm py-1">
+                    <span className="text-slate-600">Rental Income</span>
+                    <span className="font-medium">${(taxReturn.rentalProperties || []).reduce((sum, prop) => sum + ((prop.rentalIncome || 0) - (prop.expenses || 0)), 0).toLocaleString()}</span>
+                  </div>
+                )}
+
+                {/* 1099-R (Retirement Distributions) */}
+                {(taxReturn.form1099R || []).reduce((sum, r) => sum + (r.grossDistribution || 0), 0) > 0 && (
+                  <div className="flex justify-between text-sm py-1">
+                    <span className="text-slate-600">Retirement Distributions (1099-R)</span>
+                    <span className="font-medium">${(taxReturn.form1099R || []).reduce((sum, r) => sum + (r.grossDistribution || 0), 0).toLocaleString()}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Detailed Tax Withholding Breakdown */}
+            <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200">
+              <div className="flex items-center space-x-2 mb-4">
+                <DollarSign className="w-5 h-5 text-red-600" />
+                <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wide">Tax Withholding Breakdown</h3>
+              </div>
+              
+              <div className="space-y-3">
+                {/* W-2 Withholding - Per employer */}
+                {(taxReturn.w2Income || []).filter(w2 => (w2.federalTaxWithheld || 0) > 0).length > 0 && (
+                  <div className="mb-3">
+                    <p className="text-xs font-semibold text-slate-500 uppercase mb-2">W-2 Federal Tax Withheld</p>
+                    {(taxReturn.w2Income || []).filter(w2 => (w2.federalTaxWithheld || 0) > 0).map((w2, idx) => (
+                      <div key={idx} className="flex justify-between text-sm py-1">
+                        <span className="text-slate-600">{w2.employer || `Employer ${idx + 1}`}</span>
+                        <span className="font-medium text-green-600">${(w2.federalTaxWithheld || 0).toLocaleString()}</span>
+                      </div>
+                    ))}
+                    <div className="flex justify-between text-sm py-1 border-t border-slate-100 mt-2 pt-2 font-semibold">
+                      <span className="text-slate-700">Total W-2 Withholding</span>
+                      <span className="text-green-700">${(taxReturn.w2Income || []).reduce((sum, w2) => sum + (w2.federalTaxWithheld || 0), 0).toLocaleString()}</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* 1099-NEC Withholding */}
+                {(taxReturn.form1099NEC || []).reduce((sum, nec) => sum + (nec.federalTaxWithheld || 0), 0) > 0 && (
+                  <div className="flex justify-between text-sm py-1">
+                    <span className="text-slate-600">1099-NEC Withholding</span>
+                    <span className="font-medium text-green-600">${(taxReturn.form1099NEC || []).reduce((sum, nec) => sum + (nec.federalTaxWithheld || 0), 0).toLocaleString()}</span>
+                  </div>
+                )}
+
+                {/* 1099-R Withholding */}
+                {(taxReturn.form1099R || []).reduce((sum, r) => sum + (r.federalTaxWithheld || 0), 0) > 0 && (
+                  <div className="flex justify-between text-sm py-1">
+                    <span className="text-slate-600">1099-R Withholding</span>
+                    <span className="font-medium text-green-600">${(taxReturn.form1099R || []).reduce((sum, r) => sum + (r.federalTaxWithheld || 0), 0).toLocaleString()}</span>
+                  </div>
+                )}
+
+                {/* Total Withholding */}
+                <div className="flex justify-between text-sm py-2 border-t border-slate-200 mt-2 pt-2 font-semibold bg-slate-50 rounded-lg px-2 -mx-2">
+                  <span className="text-slate-800">Total Withholding</span>
+                  <span className="text-green-700 text-lg">${((taxReturn.w2Income || []).reduce((sum, w2) => sum + (w2.federalTaxWithheld || 0), 0) + (taxReturn.form1099NEC || []).reduce((sum, nec) => sum + (nec.federalTaxWithheld || 0), 0) + (taxReturn.form1099R || []).reduce((sum, r) => sum + (r.federalTaxWithheld || 0), 0)).toLocaleString()}</span>
+                </div>
+
+                {/* Info about 1099/self-employment withholding */}
+                <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-start space-x-2">
+                    <Info className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                    <div className="text-xs text-blue-800">
+                      <p className="font-semibold">No Automatic Withholding on 1099 Income</p>
+                      <p className="mt-1">
+                        1099-NEC, 1099-K, self-employment, and other non-W-2 income don't have automatic federal tax withholding. 
+                        You're responsible for setting aside money for taxes. Consider making quarterly estimated tax payments to avoid penalties.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Tax Planning Insights - NEW */}
             {taxPlanningInsights && (
               <div className="bg-gradient-to-r from-emerald-50 to-teal-50 rounded-xl p-5 shadow-sm border border-emerald-200">
@@ -1051,6 +1213,9 @@ export default function TaxSummarySidebar() {
                     <span className="text-sm font-medium text-slate-700">401(k) Contribution</span>
                     <span className="text-sm font-bold text-violet-600">
                       ${whatIf401k !== null ? whatIf401k.toLocaleString() : current401k.toLocaleString()}
+                      {remaining401kRoom === 0 && current401k > 0 && (
+                        <span className="ml-2 text-xs text-green-600">(maxed)</span>
+                      )}
                     </span>
                   </div>
                   <input
@@ -1060,12 +1225,32 @@ export default function TaxSummarySidebar() {
                     step={500}
                     value={whatIf401k !== null ? whatIf401k : current401k}
                     onChange={(e) => setWhatIf401k(Number(e.target.value))}
-                    className="w-full h-2 bg-violet-200 rounded-lg appearance-none cursor-pointer accent-violet-600"
+                    disabled={remaining401kRoom === 0}
+                    className={`w-full h-2 rounded-lg appearance-none cursor-pointer accent-violet-600 ${
+                      remaining401kRoom === 0 
+                        ? 'bg-slate-300 cursor-not-allowed' 
+                        : 'bg-violet-200'
+                    }`}
                   />
                   <div className="flex justify-between text-xs text-slate-500 mt-1">
                     <span>$0</span>
-                    <span>${max401kSlider.toLocaleString()} (2025 limit){current401k > 0 ? ` • $${current401k.toLocaleString()} contributed` : ''}</span>
+                    <span>
+                      ${max401kSlider.toLocaleString()} (2025 limit)
+                      {current401k > 0 ? ` • $${current401k.toLocaleString()} contributed` : ''}
+                      {remaining401kRoom === 0 && <span className="text-green-600 font-medium"> • MAXED</span>}
+                    </span>
                   </div>
+                  {remaining401kRoom === 0 && current401k > 0 && (
+                    <div className="mt-2 p-2 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-green-700 font-medium">You've maxed your 401(k)!</span>
+                        <span className="text-green-600 font-bold">${current401k.toLocaleString()}</span>
+                      </div>
+                      <p className="text-xs text-green-600 mt-1">
+                        2025 limit: ${(taxReturn.personalInfo?.age ?? 35 >= 50 ? K401_CATCHUP_2025 : K401_LIMIT_2025).toLocaleString()}
+                      </p>
+                    </div>
+                  )}
                   {whatIf401k !== null && whatIf401k !== current401k && (
                     <div className="mt-2 p-2 bg-white rounded-lg border border-violet-100">
                       <div className="flex items-center justify-between text-sm">
@@ -1405,6 +1590,9 @@ export default function TaxSummarySidebar() {
                     <span className="text-xs font-medium text-slate-700">401(k) Contribution</span>
                     <span className="text-xs font-bold text-violet-600">
                       ${whatIf401k !== null ? whatIf401k.toLocaleString() : current401k.toLocaleString()}
+                      {remaining401kRoom === 0 && current401k > 0 && (
+                        <span className="ml-1 text-xs text-green-600">(maxed)</span>
+                      )}
                     </span>
                   </div>
                   <input
@@ -1414,12 +1602,28 @@ export default function TaxSummarySidebar() {
                     step={500}
                     value={whatIf401k !== null ? whatIf401k : current401k}
                     onChange={(e) => setWhatIf401k(Number(e.target.value))}
-                    className="w-full h-1.5 bg-violet-200 rounded-lg appearance-none cursor-pointer accent-violet-600"
+                    disabled={remaining401kRoom === 0}
+                    className={`w-full h-1.5 rounded-lg appearance-none cursor-pointer accent-violet-600 ${
+                      remaining401kRoom === 0 
+                        ? 'bg-slate-300 cursor-not-allowed' 
+                        : 'bg-violet-200'
+                    }`}
                   />
                   <div className="flex justify-between text-[10px] text-slate-500 mt-0.5">
                     <span>$0</span>
-                    <span>${K401_LIMIT_2025.toLocaleString()}</span>
+                    <span>
+                      ${K401_LIMIT_2025.toLocaleString()}
+                      {remaining401kRoom === 0 && <span className="text-green-600 font-medium"> • MAXED</span>}
+                    </span>
                   </div>
+                  {remaining401kRoom === 0 && current401k > 0 && (
+                    <div className="mt-1.5 p-1.5 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-green-700 font-medium">Maxed!</span>
+                        <span className="text-green-600 font-bold">${current401k.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  )}
                   {whatIf401k !== null && whatIf401k !== current401k && (
                     <div className="mt-1.5 p-1.5 bg-white rounded border border-violet-100">
                       <div className="flex items-center justify-between text-xs">
