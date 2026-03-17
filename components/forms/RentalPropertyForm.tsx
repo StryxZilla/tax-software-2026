@@ -5,6 +5,7 @@ import { RentalProperty, RentalExpenses } from '../../types/tax-types';
 import { validateRentalProperty } from '../../lib/validation/form-validation';
 import { AlertCircle } from 'lucide-react';
 import ValidationError from '../common/ValidationError';
+import CurrencyInput from '../common/CurrencyInput';
 
 interface RentalPropertyFormProps {
   values: RentalProperty[];
@@ -408,23 +409,12 @@ export default function RentalPropertyForm({ values, onChange, onValidationChang
                       <label className="block text-sm font-medium text-gray-700 mb-1">
                         Total Rental Income Received
                       </label>
-                      <div className="relative">
-                        <span className="absolute left-3 top-2 text-gray-500">$</span>
-                        <input
-                          type="number"
-                          value={property.rentalIncome || ''}
-                          onChange={(e) => updateProperty(index, { rentalIncome: Math.max(0, parseFloat(e.target.value) || 0) })}
-                          onBlur={() => touchField(`rental-${index}-rentalIncome`)}
-                          min="0"
-                          step="0.01"
-                          className={`w-full pl-8 rounded-md shadow-sm ${
-                            getFieldError(`rental-${index}-rentalIncome`)
-                              ? 'border-red-300 focus:border-red-500 focus:ring-red-500'
-                              : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
-                          }`}
-                          placeholder="0.00"
-                        />
-                      </div>
+                      <CurrencyInput
+                        value={property.rentalIncome}
+                        onValueChange={(val) => updateProperty(index, { rentalIncome: val })}
+                        onBlur={() => touchField(`rental-${index}-rentalIncome`)}
+                        placeholder="0.00"
+                      />
                       <ValidationError message={getFieldError(`rental-${index}-rentalIncome`)} />
                     </div>
                   </div>
@@ -454,18 +444,11 @@ export default function RentalPropertyForm({ values, onChange, onValidationChang
                         <label className="block text-sm font-medium text-gray-700 mb-1">
                           {label}
                         </label>
-                        <div className="relative">
-                          <span className="absolute left-3 top-2 text-gray-500">$</span>
-                          <input
-                            type="number"
-                            value={property.expenses[key as keyof RentalExpenses]}
-                            onChange={(e) => updateExpense(index, key as keyof RentalExpenses, Math.max(0, parseFloat(e.target.value) || 0))}
-                            min="0"
-                            step="0.01"
-                            className="w-full pl-8 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                            placeholder="0.00"
-                          />
-                        </div>
+                        <CurrencyInput
+                          value={property.expenses[key as keyof RentalExpenses]}
+                          onValueChange={(val) => updateExpense(index, key as keyof RentalExpenses, val)}
+                          placeholder="0.00"
+                        />
                       </div>
                     ))}
                   </div>

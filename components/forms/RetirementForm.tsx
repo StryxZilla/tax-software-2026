@@ -6,6 +6,7 @@ import { calculateForm8606, validateMegaBackdoorRoth } from '../../lib/engine/fo
 import { validateRetirement } from '../../lib/validation/form-validation';
 import { AlertCircle } from 'lucide-react';
 import ValidationError from '../common/ValidationError';
+import CurrencyInput from '../common/CurrencyInput';
 
 interface RetirementFormProps {
   traditionalIRA?: TraditionalIRAContribution;
@@ -172,24 +173,12 @@ export default function RetirementForm({
             <label className="block text-sm font-semibold text-slate-700 mb-2">
               Contribution Amount
             </label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400">$</span>
-              <input
-                type="number"
-                  step="0.01"
-                value={traditionalIRA?.amount ?? ''}
-                onChange={(e) => handleTraditionalIRAChange({ amount: parseFloat(e.target.value) || 0 })}
-                onBlur={(e) => {
-                  const val = parseFloat(e.target.value);
-                  handleTraditionalIRAChange({ amount: isNaN(val) ? 0 : val });
-                  touchField('retirement-traditional-amount');
-                }}
-                min="0"
-                max="8000"
-                className={`pl-8 ${getInputClassName('retirement-traditional-amount')}`}
+            <CurrencyInput
+              value={traditionalIRA?.amount}
+              onValueChange={(val) => handleTraditionalIRAChange({ amount: val })}
+              onBlur={() => touchField('retirement-traditional-amount')}
               placeholder="0.00"
-              />
-            </div>
+            />
             <ValidationError message={getFieldError('retirement-traditional-amount')} />
             {!getFieldError('retirement-traditional-amount') && (
               <p className="mt-1 text-xs text-slate-500">2025 limit: $7,000 ($8,000 if age 50+) — found on Form 5498</p>
@@ -219,24 +208,12 @@ export default function RetirementForm({
           <label className="block text-sm font-semibold text-slate-700 mb-2">
             Contribution Amount
           </label>
-          <div className="relative">
-            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400">$</span>
-            <input
-              type="number"
-                step="0.01"
-              value={rothIRA?.amount ?? ''}
-              onChange={(e) => handleRothIRAChange({ amount: parseFloat(e.target.value) || 0 })}
-              onBlur={(e) => {
-                const val = parseFloat(e.target.value);
-                handleRothIRAChange({ amount: isNaN(val) ? 0 : val });
-                touchField('retirement-roth-amount');
-              }}
-              min="0"
-              max="8000"
-              className={`pl-8 ${getInputClassName('retirement-roth-amount')}`}
+          <CurrencyInput
+            value={rothIRA?.amount}
+            onValueChange={(val) => handleRothIRAChange({ amount: val })}
+            onBlur={() => touchField('retirement-roth-amount')}
             placeholder="0.00"
-            />
-          </div>
+          />
           <ValidationError message={getFieldError('retirement-roth-amount')} />
           {!getFieldError('retirement-roth-amount') && (
             <p className="mt-1 text-xs text-slate-500">2025 limit: $7,000 ($8,000 if age 50+). Phase-out starts at $150,000 (single) / $236,000 (MFJ).</p>
@@ -265,22 +242,12 @@ export default function RetirementForm({
             <label className="block text-sm font-semibold text-slate-700 mb-2">
               Nondeductible Contributions — Current Year <span className="text-xs font-normal text-slate-400">(Form 8606, Line 1)</span>
             </label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400">$</span>
-              <input
-                type="number"
-                  step="0.01"
-                value={(form8606?.nondeductibleContributions ?? 0) === 0 ? '' : form8606?.nondeductibleContributions}
-                onChange={(e) => {
-                  const raw = e.target.value;
-                  handleForm8606Change({ nondeductibleContributions: raw === '' ? 0 : parseFloat(raw) || 0 });
-                }}
-                onBlur={() => touchField('retirement-8606-nondeductible')}
-                min="0"
-                className={`pl-8 ${getInputClassName('retirement-8606-nondeductible')}`}
+            <CurrencyInput
+              value={form8606?.nondeductibleContributions}
+              onValueChange={(val) => handleForm8606Change({ nondeductibleContributions: val })}
+              onBlur={() => touchField('retirement-8606-nondeductible')}
               placeholder="0.00"
-              />
-            </div>
+            />
             <ValidationError message={getFieldError('retirement-8606-nondeductible')} />
             <p className="mt-1 text-xs text-slate-500">After-tax contributions made to a Traditional IRA this year</p>
           </div>
@@ -290,23 +257,12 @@ export default function RetirementForm({
             <label className="block text-sm font-semibold text-slate-700 mb-2">
               Prior Year Basis <span className="text-xs font-normal text-slate-400">(Form 8606, Line 2)</span>
             </label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400">$</span>
-              <input
-                type="number"
-                  step="0.01"
-                value={form8606?.priorYearBasis ?? ''}
-                onChange={(e) => handleForm8606Change({ priorYearBasis: parseFloat(e.target.value) || 0 })}
-                onBlur={(e) => {
-                  const val = parseFloat(e.target.value);
-                  handleForm8606Change({ priorYearBasis: isNaN(val) ? 0 : val });
-                  touchField('retirement-8606-priorBasis');
-                }}
-                min="0"
-                className={`pl-8 ${getInputClassName('retirement-8606-priorBasis')}`}
+            <CurrencyInput
+              value={form8606?.priorYearBasis}
+              onValueChange={(val) => handleForm8606Change({ priorYearBasis: val })}
+              onBlur={() => touchField('retirement-8606-priorBasis')}
               placeholder="0.00"
-              />
-            </div>
+            />
             <ValidationError message={getFieldError('retirement-8606-priorBasis')} />
             <p className="mt-1 text-xs text-slate-500">Total nondeductible contributions from all prior years (from your last Form 8606)</p>
           </div>
@@ -316,23 +272,12 @@ export default function RetirementForm({
             <label className="block text-sm font-semibold text-slate-700 mb-2">
               Amount Converted to Roth IRA <span className="text-xs font-normal text-slate-400">(Form 8606, Line 4)</span>
             </label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400">$</span>
-              <input
-                type="number"
-                  step="0.01"
-                value={form8606?.conversionsToRoth ?? ''}
-                onChange={(e) => handleForm8606Change({ conversionsToRoth: parseFloat(e.target.value) || 0 })}
-                onBlur={(e) => {
-                  const val = parseFloat(e.target.value);
-                  handleForm8606Change({ conversionsToRoth: isNaN(val) ? 0 : val });
-                  touchField('retirement-8606-conversions');
-                }}
-                min="0"
-                className={`pl-8 ${getInputClassName('retirement-8606-conversions')}`}
+            <CurrencyInput
+              value={form8606?.conversionsToRoth}
+              onValueChange={(val) => handleForm8606Change({ conversionsToRoth: val })}
+              onBlur={() => touchField('retirement-8606-conversions')}
               placeholder="0.00"
-              />
-            </div>
+            />
             <ValidationError message={getFieldError('retirement-8606-conversions')} />
             <p className="mt-1 text-xs text-slate-500">Total converted from Traditional IRA to Roth IRA during 2025</p>
           </div>
@@ -342,23 +287,12 @@ export default function RetirementForm({
             <label className="block text-sm font-semibold text-slate-700 mb-2">
               Distributions from Traditional IRA <span className="text-xs font-normal text-slate-400">(Form 8606, Line 5)</span>
             </label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400">$</span>
-              <input
-                type="number"
-                  step="0.01"
-                value={form8606?.distributionsFromTraditionalIRA ?? ''}
-                onChange={(e) => handleForm8606Change({ distributionsFromTraditionalIRA: parseFloat(e.target.value) || 0 })}
-                onBlur={(e) => {
-                  const val = parseFloat(e.target.value);
-                  handleForm8606Change({ distributionsFromTraditionalIRA: isNaN(val) ? 0 : val });
-                  touchField('retirement-8606-distributions');
-                }}
-                min="0"
-                className={`pl-8 ${getInputClassName('retirement-8606-distributions')}`}
+            <CurrencyInput
+              value={form8606?.distributionsFromTraditionalIRA}
+              onValueChange={(val) => handleForm8606Change({ distributionsFromTraditionalIRA: val })}
+              onBlur={() => touchField('retirement-8606-distributions')}
               placeholder="0.00"
-              />
-            </div>
+            />
             <ValidationError message={getFieldError('retirement-8606-distributions')} />
             <p className="mt-1 text-xs text-slate-500">Regular withdrawals taken from Traditional IRA (excluding conversions) — from Form 1099-R</p>
           </div>
@@ -368,23 +302,12 @@ export default function RetirementForm({
             <label className="block text-sm font-semibold text-slate-700 mb-2">
               Traditional IRA Balance at Dec 31, 2025 <span className="text-xs font-normal text-slate-400">(Form 8606, Line 7)</span>
             </label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400">$</span>
-              <input
-                type="number"
-                  step="0.01"
-                value={form8606?.endOfYearTraditionalIRABalance ?? ''}
-                onChange={(e) => handleForm8606Change({ endOfYearTraditionalIRABalance: parseFloat(e.target.value) || 0 })}
-                onBlur={(e) => {
-                  const val = parseFloat(e.target.value);
-                  handleForm8606Change({ endOfYearTraditionalIRABalance: isNaN(val) ? 0 : val });
-                  touchField('retirement-8606-balance');
-                }}
-                min="0"
-                className={`pl-8 ${getInputClassName('retirement-8606-balance')}`}
+            <CurrencyInput
+              value={form8606?.endOfYearTraditionalIRABalance}
+              onValueChange={(val) => handleForm8606Change({ endOfYearTraditionalIRABalance: val })}
+              onBlur={() => touchField('retirement-8606-balance')}
               placeholder="0.00"
-              />
-            </div>
+            />
             <ValidationError message={getFieldError('retirement-8606-balance')} />
             <p className="mt-1 text-xs text-slate-500">Combined year-end value of all Traditional, SEP, and SIMPLE IRAs — include all accounts</p>
           </div>

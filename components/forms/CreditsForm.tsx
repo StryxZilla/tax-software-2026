@@ -5,6 +5,7 @@ import { EducationExpenses } from '../../types/tax-types';
 import { Plus, Trash2, GraduationCap, DollarSign, Award, Info, CheckCircle, AlertCircle } from 'lucide-react';
 import { validateEducationExpense } from '../../lib/validation/form-validation';
 import ValidationError from '../common/ValidationError';
+import CurrencyInput from '../common/CurrencyInput';
 
 interface CreditsFormProps {
   educationExpenses: EducationExpenses[];
@@ -322,21 +323,12 @@ export default function CreditsForm({
                         <label className="block text-sm font-semibold text-slate-700 mb-3">
                           Tuition and Fees Paid in 2025 <span className="text-red-500">*</span>
                         </label>
-                        <div className="relative">
-                          <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                            <span className="text-slate-600 font-bold text-xl">$</span>
-                          </div>
-                          <input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            value={expense.tuitionAndFees || ''}
-                            onChange={(e) => updateEducationExpense(index, { tuitionAndFees: parseFloat(e.target.value) || 0 })}
-                            onBlur={() => touchField(`education-${index}-tuition`)}
-                            className={`pl-10 text-2xl font-bold py-4 ${getInputClassName(`education-${index}-tuition`)}`}
-                            placeholder="0.00"
-                          />
-                        </div>
+                        <CurrencyInput
+                          value={expense.tuitionAndFees}
+                          onValueChange={(val) => updateEducationExpense(index, { tuitionAndFees: val })}
+                          placeholder="0.00"
+                          inputClassName="text-2xl font-bold py-4"
+                        />
                         <ValidationError message={getFieldError(`education-${index}-tuition`)} />
                         {!getFieldError(`education-${index}-tuition`) && (
                           <p className="mt-3 text-xs text-slate-600">

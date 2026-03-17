@@ -1,4 +1,5 @@
 import React from 'react';
+import CurrencyInput from '../common/CurrencyInput';
 
 interface AboveTheLineDeductionsData {
   educatorExpenses: number;
@@ -37,15 +38,9 @@ export default function AboveTheLineDeductionsForm({ value, onChange }: AboveThe
           Teachers & school employees can deduct up to $300 of out-of-pocket expenses for supplies
         </p>
         <div className="relative max-w-md">
-          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400">$</span>
-          <input
-            type="number"
-            step="0.01"
-            value={value.educatorExpenses || ''}
-            onChange={(e) => update('educatorExpenses', parseFloat(e.target.value) || 0)}
-            min="0"
-            max="300"
-            className="w-full pl-8 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          <CurrencyInput
+            value={value.educatorExpenses}
+            onValueChange={(val) => update('educatorExpenses', val)}
             placeholder="0.00"
           />
         </div>
@@ -59,14 +54,9 @@ export default function AboveTheLineDeductionsForm({ value, onChange }: AboveThe
           Interest paid on qualified student loans — reported by your loan servicer
         </p>
         <div className="relative max-w-md">
-          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400">$</span>
-          <input
-            type="number"
-            step="0.01"
-            value={value.studentLoanInterest || ''}
-            onChange={(e) => update('studentLoanInterest', parseFloat(e.target.value) || 0)}
-            min="0"
-            className="w-full pl-8 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          <CurrencyInput
+            value={value.studentLoanInterest}
+            onValueChange={(val) => update('studentLoanInterest', val)}
             placeholder="0.00"
           />
         </div>
@@ -85,36 +75,22 @@ export default function AboveTheLineDeductionsForm({ value, onChange }: AboveThe
             <label className="block text-sm font-medium text-slate-700 mb-1">
               Your Contributions
             </label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400">$</span>
-              <input
-                type="number"
-                step="0.01"
-                value={value.hsaContributions || ''}
-                onChange={(e) => update('hsaContributions', parseFloat(e.target.value) || 0)}
-                min="0"
-                className="w-full pl-8 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                placeholder="0.00"
-              />
-            </div>
+            <CurrencyInput
+              value={value.hsaContributions}
+              onValueChange={(val) => update('hsaContributions', val)}
+              placeholder="0.00"
+            />
           </div>
           
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">
               Employer Contributions
             </label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400">$</span>
-              <input
-                type="number"
-                step="0.01"
-                value={value.hsaEmployerContributions || ''}
-                onChange={(e) => update('hsaEmployerContributions', parseFloat(e.target.value) || 0)}
-                min="0"
-                className="w-full pl-8 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                placeholder="0.00"
-              />
-            </div>
+            <CurrencyInput
+              value={value.hsaEmployerContributions}
+              onValueChange={(val) => update('hsaEmployerContributions', val)}
+              placeholder="0.00"
+            />
           </div>
         </div>
         
@@ -130,14 +106,9 @@ export default function AboveTheLineDeductionsForm({ value, onChange }: AboveThe
           Health insurance premiums for self-employed individuals (Schedule 1, Line 17)
         </p>
         <div className="relative max-w-md">
-          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400">$</span>
-          <input
-            type="number"
-            step="0.01"
-            value={value.selfEmploymentHealthInsurance || ''}
-            onChange={(e) => update('selfEmploymentHealthInsurance', parseFloat(e.target.value) || 0)}
-            min="0"
-            className="w-full pl-8 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          <CurrencyInput
+            value={value.selfEmploymentHealthInsurance}
+            onValueChange={(val) => update('selfEmploymentHealthInsurance', val)}
             placeholder="0.00"
           />
         </div>
@@ -153,14 +124,9 @@ export default function AboveTheLineDeductionsForm({ value, onChange }: AboveThe
           Self-employed retirement plan contributions
         </p>
         <div className="relative max-w-md">
-          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400">$</span>
-          <input
-            type="number"
-            step="0.01"
-            value={value.sepIRA || ''}
-            onChange={(e) => update('sepIRA', parseFloat(e.target.value) || 0)}
-            min="0"
-            className="w-full pl-8 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          <CurrencyInput
+            value={value.sepIRA}
+            onValueChange={(val) => update('sepIRA', val)}
             placeholder="0.00"
           />
         </div>
@@ -176,14 +142,9 @@ export default function AboveTheLineDeductionsForm({ value, onChange }: AboveThe
           Alimony payments (divorce agreements signed before 2019)
         </p>
         <div className="relative max-w-md">
-          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400">$</span>
-          <input
-            type="number"
-            step="0.01"
-            value={value.alimonyPaid || ''}
-            onChange={(e) => update('alimonyPaid', parseFloat(e.target.value) || 0)}
-            min="0"
-            className="w-full pl-8 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+          <CurrencyInput
+            value={value.alimonyPaid}
+            onValueChange={(val) => update('alimonyPaid', val)}
             placeholder="0.00"
           />
         </div>
