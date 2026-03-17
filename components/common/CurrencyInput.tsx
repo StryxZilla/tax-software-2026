@@ -49,7 +49,14 @@ const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
     const [displayValue, setDisplayValue] = useState<string>(() => formatCurrency(value));
     const [isFocused, setIsFocused] = useState(false);
 
-    // Show with commas when not focused, raw when focused
+    // Sync displayValue when value prop changes externally (e.g., data loading)
+    React.useEffect(() => {
+      if (!isFocused) {
+        setDisplayValue(value && value !== 0 ? formatCurrencyWithCommas(value) : (value === 0 ? '0.00' : ''));
+      }
+    }, [value, isFocused]);
+
+    // Show with commas when not focused, raw when focused (but use displayValue for live typing)
     const renderedValue = isFocused ? displayValue : formatCurrencyWithCommas(value);
 
     const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
