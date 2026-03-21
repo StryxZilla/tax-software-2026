@@ -44,6 +44,21 @@ export function formatCurrencyWithCommas(value: number | undefined | null): stri
   return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
+/** Parse user input from editable/display currency formats into a number */
+export function parseCurrencyInput(raw: string): number | null {
+  const normalized = raw.replace(/[$,\s]/g, '');
+  if (!normalized) return null;
+  const parsed = Number.parseFloat(normalized);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+/** Value shown while editing (no commas, keeps precision while typing) */
+export function formatCurrencyForEditing(value: number | undefined | null): string {
+  if (value === undefined || value === null) return '';
+  if (value === 0) return '0';
+  return String(value);
+}
+
 const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
   ({ inputClassName = '', hasError, showPrefix = true, className, value, onValueChange, onBlur, placeholder = '0.00', ...inputProps }, ref) => {
     const [displayValue, setDisplayValue] = useState<string>(() => formatCurrency(value));
@@ -62,27 +77,23 @@ const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
     const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
       const raw = e.target.value;
       setDisplayValue(raw);
-      const parsed = parseFloat(raw.replace(/,/g, ''));
-      onValueChange?.(isNaN(parsed) ? 0 : parsed);
+      const parsed = parseCurrencyInput(raw);
+      onValueChange?.(parsed ?? 0);
     }, [onValueChange]);
 
     const handleFocus = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
       setIsFocused(true);
-      // Show raw value for easier editing (remove trailing zeros)
-      if (value && value !== 0) {
-        setDisplayValue(String(value));
-      }
+      // Show raw value for easier editing (without grouping commas)
+      setDisplayValue(formatCurrencyForEditing(value));
       inputProps.onFocus?.(e);
     }, [value, inputProps]);
 
     const handleBlur = useCallback((e: React.FocusEvent<HTMLInputElement>) => {
       setIsFocused(false);
-      // Format to 2 decimals on blur (don't call onValueChange - handleChange already did)
-      const parsed = parseFloat(displayValue.replace(/,/g, ''));
-      if (!isNaN(parsed) && parsed !== 0) {
+      // Normalize local display cache; actual rendered blur value comes from `value` prop with commas.
+      const parsed = parseCurrencyInput(displayValue);
+      if (parsed !== null) {
         setDisplayValue(parsed.toFixed(2));
-      } else if (parsed === 0) {
-        setDisplayValue('0.00'); // Show 0.00 for zero
       } else {
         setDisplayValue('');
       }
@@ -104,8 +115,8 @@ const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
         )}
         <input
           ref={ref}
-          type="number"
-          step="0.01"
+          type="text"
+          inputMode="decimal"
           className={`${baseInput} ${inputClassName}`}
           value={renderedValue}
           onChange={handleChange}

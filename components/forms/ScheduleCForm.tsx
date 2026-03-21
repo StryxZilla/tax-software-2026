@@ -253,21 +253,14 @@ export default function ScheduleCForm({ value, onChange, onValidationChange }: S
             <label className="block text-sm font-medium text-gray-700">
               Gross Receipts or Sales
             </label>
-            <div className="relative">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 pt-1">
-                <span className="text-gray-500 sm:text-sm">$</span>
-              </div>
-              <input
-                type="number"
-                value={formData.grossReceipts || ''}
-                onChange={(e) => updateBusinessInfo({ grossReceipts: parseFloat(e.target.value) || 0 })}
-                onBlur={() => touchField('scheduleC-grossReceipts')}
-                min="0"
-                step="0.01"
-                className={`pl-8 ${getInputClassName('scheduleC-grossReceipts')}`}
+            <CurrencyInput
+              value={formData.grossReceipts}
+              onValueChange={(grossReceipts) => updateBusinessInfo({ grossReceipts })}
+              onBlur={() => touchField('scheduleC-grossReceipts')}
+              min="0"
+              inputClassName={getInputClassName('scheduleC-grossReceipts')}
               placeholder="0.00"
-              />
-            </div>
+            />
             <ValidationError message={getFieldError('scheduleC-grossReceipts')} />
           </div>
 
@@ -275,21 +268,14 @@ export default function ScheduleCForm({ value, onChange, onValidationChange }: S
             <label className="block text-sm font-medium text-gray-700">
               Returns and Allowances
             </label>
-            <div className="relative">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 pt-1">
-                <span className="text-gray-500 sm:text-sm">$</span>
-              </div>
-              <input
-                type="number"
-                value={formData.returns || ''}
-                onChange={(e) => updateBusinessInfo({ returns: parseFloat(e.target.value) || 0 })}
-                onBlur={() => touchField('scheduleC-returns')}
-                min="0"
-                step="0.01"
-                className={`pl-8 ${getInputClassName('scheduleC-returns')}`}
+            <CurrencyInput
+              value={formData.returns}
+              onValueChange={(returns) => updateBusinessInfo({ returns })}
+              onBlur={() => touchField('scheduleC-returns')}
+              min="0"
+              inputClassName={getInputClassName('scheduleC-returns')}
               placeholder="0.00"
-              />
-            </div>
+            />
             <ValidationError message={getFieldError('scheduleC-returns')} />
           </div>
 
@@ -297,21 +283,14 @@ export default function ScheduleCForm({ value, onChange, onValidationChange }: S
             <label className="block text-sm font-medium text-gray-700">
               Cost of Goods Sold
             </label>
-            <div className="relative">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 pt-1">
-                <span className="text-gray-500 sm:text-sm">$</span>
-              </div>
-              <input
-                type="number"
-                value={formData.costOfGoodsSold || ''}
-                onChange={(e) => updateBusinessInfo({ costOfGoodsSold: parseFloat(e.target.value) || 0 })}
-                onBlur={() => touchField('scheduleC-cogs')}
-                min="0"
-                step="0.01"
-                className={`pl-8 ${getInputClassName('scheduleC-cogs')}`}
+            <CurrencyInput
+              value={formData.costOfGoodsSold}
+              onValueChange={(costOfGoodsSold) => updateBusinessInfo({ costOfGoodsSold })}
+              onBlur={() => touchField('scheduleC-cogs')}
+              min="0"
+              inputClassName={getInputClassName('scheduleC-cogs')}
               placeholder="0.00"
-              />
-            </div>
+            />
             <ValidationError message={getFieldError('scheduleC-cogs')} />
           </div>
 
