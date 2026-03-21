@@ -188,4 +188,30 @@ describe('FormNavigation — Next/Previous/Skip', () => {
     await user.click(screen.getByText(/Previous/i))
     expect(onPrevious).toHaveBeenCalledOnce()
   })
+
+  it('renders navigation correctly for newly added middle steps', () => {
+    render(
+      <FormNavigation
+        currentStep="income-dividends"
+        onNext={() => {}}
+        onPrevious={() => {}}
+        onSkip={() => {}}
+      />,
+    )
+
+    expect(screen.getByText(/Previous/i)).toBeInTheDocument()
+    expect(screen.getByText(/Next/i)).toBeInTheDocument()
+    expect(screen.getByText(/Skip for now/i)).toBeInTheDocument()
+  })
+
+  it('does not render Next button on review step', () => {
+    render(
+      <FormNavigation
+        currentStep="review"
+        onNext={() => {}}
+      />,
+    )
+
+    expect(screen.queryByText(/Next/i)).not.toBeInTheDocument()
+  })
 })

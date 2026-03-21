@@ -39,6 +39,13 @@ describe('WelcomeScreen — fresh start', () => {
     renderWithProviders(<WelcomeScreen onStart={() => {}} />)
     expect(screen.getByText(/Welcome to Zoey/i)).toBeInTheDocument()
   })
+
+  it('shows the full 18-step flow summary', () => {
+    renderWithProviders(<WelcomeScreen onStart={() => {}} />)
+    expect(screen.getByText(/18 guided steps from intake to final review/i)).toBeInTheDocument()
+    expect(screen.getByText(/Dividend Income/i)).toBeInTheDocument()
+    expect(screen.getByText(/Schedule 1 Attachments/i)).toBeInTheDocument()
+  })
 })
 
 describe('WelcomeScreen — resume flow', () => {

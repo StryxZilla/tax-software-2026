@@ -11,13 +11,20 @@ const WIZARD_STEPS = [
   { number: 2, label: 'Dependents', description: 'Children and qualifying relatives' },
   { number: 3, label: 'W-2 Income', description: 'Wages from employers' },
   { number: 4, label: 'Interest Income', description: '1099-INT from banks & savings' },
-  { number: 5, label: 'Capital Gains', description: 'Schedule D — stocks, crypto, assets' },
-  { number: 6, label: 'Self-Employment', description: 'Schedule C — freelance & business income' },
-  { number: 7, label: 'Rental Property', description: 'Schedule E — rental income & expenses' },
-  { number: 8, label: 'Retirement Accounts', description: 'IRA contributions & distributions' },
-  { number: 9, label: 'Itemized Deductions', description: 'Schedule A — mortgage, charity, medical' },
-  { number: 10, label: 'Tax Credits', description: 'Child tax credit, education credits & more' },
-  { number: 11, label: 'Review & Download', description: 'Summary, PDF generation, final review' },
+  { number: 5, label: 'Dividend Income', description: '1099-DIV from investments' },
+  { number: 6, label: 'Capital Gains', description: 'Schedule D — stocks, crypto, assets' },
+  { number: 7, label: 'Self-Employment', description: 'Schedule C — freelance & business income' },
+  { number: 8, label: '1099-NEC Income', description: 'Nonemployee compensation forms' },
+  { number: 9, label: '1099-K Income', description: 'Third-party payment processing income' },
+  { number: 10, label: 'Retirement Contributions', description: 'IRA and 401(k) contributions' },
+  { number: 11, label: 'Retirement Distributions', description: '1099-R pensions and annuities' },
+  { number: 12, label: 'Social Security Benefits', description: 'SSA-1099 benefits and withholding' },
+  { number: 13, label: 'Rental Property', description: 'Schedule E — rental income & expenses' },
+  { number: 14, label: 'Above-the-Line Deductions', description: 'HSA, student loan interest, and adjustments' },
+  { number: 15, label: 'Itemized Deductions', description: 'Schedule A — mortgage, charity, medical' },
+  { number: 16, label: 'Schedule 1 Attachments', description: 'Additional income and deduction details' },
+  { number: 17, label: 'Tax Credits', description: 'Child tax credit, education credits & more' },
+  { number: 18, label: 'Review & Download', description: 'Summary, PDF generation, final review' },
 ];
 
 const DOCUMENTS_CHECKLIST = [
@@ -199,7 +206,7 @@ export default function WelcomeScreen({ onStart, onResume, onStartOver, storageU
         <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-slate-200 bg-slate-50">
             <h2 className="text-lg font-bold text-slate-900">What we&apos;ll cover</h2>
-            <p className="text-sm text-slate-600 mt-1">11 guided steps from intake to final review.</p>
+            <p className="text-sm text-slate-600 mt-1">18 guided steps from intake to final review.</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-0 divide-y sm:divide-y-0 sm:divide-x divide-slate-100">

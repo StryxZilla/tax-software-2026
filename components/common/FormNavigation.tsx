@@ -17,19 +17,27 @@ const STEP_ORDER: WizardStep[] = [
   'dependents',
   'income-w2',
   'income-interest',
+  'income-dividends',
   'income-capital-gains',
   'income-self-employment',
-  'income-rental',
+  'income-1099-nec',
+  'income-1099-k',
   'retirement-accounts',
+  'income-1099-r',
+  'income-social-security',
+  'income-rental',
+  'above-the-line',
   'deductions',
+  'deductions-schedule-1a',
   'credits',
   'review',
 ];
 
 export default function FormNavigation({ currentStep, onNext, onPrevious, onSkip, canProceed = true, onBlockedNext }: FormNavigationProps) {
   const currentIndex = STEP_ORDER.indexOf(currentStep);
-  const isFirst = currentIndex === 0;
-  const isLast = currentIndex === STEP_ORDER.length - 1;
+  const safeIndex = currentIndex === -1 ? 0 : currentIndex;
+  const isFirst = safeIndex === 0;
+  const isLast = safeIndex === STEP_ORDER.length - 1;
   const optional = isStepOptional(currentStep);
 
   return (
