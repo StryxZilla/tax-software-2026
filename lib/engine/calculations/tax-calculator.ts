@@ -14,8 +14,23 @@ import {
   CAPITAL_LOSS_LIMIT,
   MEALS_DEDUCTION_RATE,
   SAVERS_CREDIT_2025,
-  SCHEDULE_1_A_2025,
 } from '../../../data/tax-constants';
+
+const JOINT_STATUS: FilingStatus[] = ['Married Filing Jointly', 'Qualifying Surviving Spouse'];
+
+const HIGH_INCOME_THRESHOLDS: Record<FilingStatus, number> = {
+  'Single': 200000,
+  'Married Filing Jointly': 250000,
+  'Married Filing Separately': 125000,
+  'Head of Household': 200000,
+  'Qualifying Surviving Spouse': 250000,
+};
+
+function getAmtKey(filingStatus: FilingStatus): 'single' | 'marriedFilingJointly' | 'marriedFilingSeparately' {
+  if (JOINT_STATUS.includes(filingStatus)) return 'marriedFilingJointly';
+  if (filingStatus === 'Married Filing Separately') return 'marriedFilingSeparately';
+  return 'single';
+}
 
 /**
  * Calculate total income from all sources
@@ -239,20 +254,11 @@ export function calculateAMT(taxReturn: TaxReturn, agi: number, regularTax: numb
   }
 
   // Get AMT exemption
-  let exemption = AMT_2025.exemption[
-    filingStatus === 'Married Filing Jointly' || filingStatus === 'Qualifying Surviving Spouse' 
-      ? 'marriedFilingJointly' 
-      : filingStatus === 'Married Filing Separately'
-      ? 'marriedFilingSeparately'
-      : 'single'
-  ];
+  const amtKey = getAmtKey(filingStatus);
+  let exemption = AMT_2025.exemption[amtKey];
 
   // Phase out exemption
-  const phaseoutThreshold = AMT_2025.phaseoutThreshold[
-    filingStatus === 'Married Filing Jointly' || filingStatus === 'Qualifying Surviving Spouse'
-      ? 'marriedFilingJointly'
-      : 'single'
-  ];
+  const phaseoutThreshold = AMT_2025.phaseoutThreshold[amtKey];
 
   if (amtIncome > phaseoutThreshold) {
     const phaseoutAmount = (amtIncome - phaseoutThreshold) * AMT_2025.phaseoutRate;
@@ -447,16 +453,7 @@ export function calculateNetInvestmentIncome(taxReturn: TaxReturn): number {
 export function calculateNIIT(taxReturn: TaxReturn, magi: number): number {
   const filingStatus = taxReturn.personalInfo.filingStatus;
 
-  // Determine threshold based on filing status
-  const niitThresholds: Record<FilingStatus, number> = {
-    'Single': 200000,
-    'Married Filing Jointly': 250000,
-    'Married Filing Separately': 125000,
-    'Head of Household': 200000,
-    'Qualifying Surviving Spouse': 250000,
-  };
-
-  const threshold = niitThresholds[filingStatus] || 200000;
+  const threshold = HIGH_INCOME_THRESHOLDS[filingStatus];
 
   // Calculate excess MAGI over threshold
   const excessMagi = Math.max(0, magi - threshold);
@@ -486,15 +483,7 @@ export function calculateNIIT(taxReturn: TaxReturn, magi: number): number {
 export function calculateAdditionalMedicareTax(taxReturn: TaxReturn): number {
   const filingStatus = taxReturn.personalInfo.filingStatus;
   
-  const thresholds: Record<FilingStatus, number> = {
-    'Single': 200000,
-    'Married Filing Jointly': 250000,
-    'Married Filing Separately': 125000,
-    'Head of Household': 200000,
-    'Qualifying Surviving Spouse': 250000,
-  };
-  
-  const threshold = thresholds[filingStatus] || 200000;
+  const threshold = HIGH_INCOME_THRESHOLDS[filingStatus];
   
   // Calculate Medicare wages (from W-2)
   const medicareWages = taxReturn.w2Income.reduce((sum, w2) => sum + (w2.medicareWages || 0), 0);
@@ -530,49 +519,43 @@ export function calculateAdditionalMedicareTax(taxReturn: TaxReturn): number {
  */
 export function calculateQBIDeduction(taxReturn: TaxReturn, taxableIncome: number): number {
   const filingStatus = taxReturn.personalInfo.filingStatus;
-  
+
   // 2025 thresholds
   const thresholds: Record<FilingStatus, { start: number; end: number }> = {
     'Single': { start: 197300, end: 247300 },
     'Married Filing Jointly': { start: 394600, end: 494600 },
-    'Married Filing Separately': { start: 197300, end: 247300 }, // Use single for MFS
+    'Married Filing Separately': { start: 197300, end: 247300 },
     'Head of Household': { start: 197300, end: 247300 },
     'Qualifying Surviving Spouse': { start: 394600, end: 494600 },
   };
-  
-  const threshold = thresholds[filingStatus] || thresholds['Single'];
-  
-  // No QBI deduction if below phase-in threshold
+
+  const threshold = thresholds[filingStatus];
+
+  const netProfit = taxReturn.selfEmployment
+    ? calculateScheduleCProfit(taxReturn.selfEmployment)
+    : 0;
+
+  // QBI deduction cannot be negative
+  const baseDeduction = Math.max(0, netProfit * 0.2);
+  if (baseDeduction === 0) return 0;
+
+  // Full deduction while below the phaseout start
   if (taxableIncome < threshold.start) {
-    // Calculate QBI from self-employment
-    let qbi = 0;
-    if (taxReturn.selfEmployment) {
-      const netProfit = calculateScheduleCProfit(taxReturn.selfEmployment);
-      // QBI is 20% of net self-employment income
-      qbi = netProfit * 0.2;
-    }
-    return Math.round(qbi);
+    return Math.round(baseDeduction);
   }
-  
-  // If above phase-out range, no deduction
+
+  // No deduction after the phaseout range
   if (taxableIncome >= threshold.end) {
     return 0;
   }
-  
+
   // Phase-out range - partial deduction
   const phaseOutRange = threshold.end - threshold.start;
   const taxableIncomeInRange = taxableIncome - threshold.start;
   const phaseOutPercentage = taxableIncomeInRange / phaseOutRange;
-  
-  // Calculate base QBI
-  let qbi = 0;
-  if (taxReturn.selfEmployment) {
-    const netProfit = calculateScheduleCProfit(taxReturn.selfEmployment);
-    qbi = netProfit * 0.2;
-  }
-  
+
   // Reduce by phase-out percentage
-  return Math.round(qbi * (1 - phaseOutPercentage));
+  return Math.round(baseDeduction * (1 - phaseOutPercentage));
 }
 
 /**

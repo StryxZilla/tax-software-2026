@@ -22,6 +22,9 @@ import {
   calculateEducationCredits,
   calculateTaxReturn,
   calculateSaversCredit,
+  calculateNIIT,
+  calculateAdditionalMedicareTax,
+  calculateQBIDeduction,
 } from '../../lib/engine/calculations/tax-calculator'
 import type { TaxReturn, FilingStatus } from '../../types/tax-types'
 
@@ -609,6 +612,65 @@ describe('calculateSaversCredit', () => {
     })
     tr.personalInfo.age = 17
     expect(calculateSaversCredit(tr, 20000)).toBe(0)
+  })
+})
+
+// ─── High-income threshold taxes ───────────────────────────────────
+
+describe('high-income threshold taxes', () => {
+  it('does not apply NIIT exactly at filing-status threshold', () => {
+    const tr = baseTaxReturn({
+      w2Income: [{ employer: 'Corp', ein: '', wages: 200000, federalTaxWithheld: 0, socialSecurityWages: 176100, socialSecurityTaxWithheld: 10918, medicareWages: 200000, medicareTaxWithheld: 2900 }],
+      interest: [{ payer: 'Bank', amount: 10000 }],
+    })
+
+    expect(calculateNIIT(tr, 200000)).toBe(0)
+  })
+
+  it('applies Additional Medicare Tax only above threshold', () => {
+    const atThreshold = baseTaxReturn({
+      w2Income: [{ employer: 'Corp', ein: '', wages: 200000, federalTaxWithheld: 0, socialSecurityWages: 176100, socialSecurityTaxWithheld: 10918, medicareWages: 200000, medicareTaxWithheld: 2900 }],
+    })
+    const aboveThreshold = baseTaxReturn({
+      w2Income: [{ employer: 'Corp', ein: '', wages: 200112, federalTaxWithheld: 0, socialSecurityWages: 176100, socialSecurityTaxWithheld: 10918, medicareWages: 200112, medicareTaxWithheld: 2901.624 }],
+    })
+
+    expect(calculateAdditionalMedicareTax(atThreshold)).toBe(0)
+    expect(calculateAdditionalMedicareTax(aboveThreshold)).toBe(1) // 112 * 0.9% = 1.008 → rounds to $1
+  })
+})
+
+// ─── AMT ───────────────────────────────────────────────────────────
+
+describe('calculateAMT', () => {
+  it('uses married-filing-separately phaseout threshold (not single fallback)', () => {
+    const tr = baseTaxReturn()
+    tr.personalInfo.filingStatus = 'Married Filing Separately'
+
+    // At exactly MFS phaseout threshold there should be no exemption phaseout.
+    const agi = 626350
+    const regularTax = 0
+    const amt = calculateAMT(tr, agi, regularTax)
+
+    // AMT taxable income = 626350 - 68500 = 557850
+    // AMT = 220700 * 26% + (557850-220700) * 28% = 151784
+    expect(amt).toBe(151784)
+  })
+})
+
+// ─── QBI ───────────────────────────────────────────────────────────
+
+describe('calculateQBIDeduction', () => {
+  it('never returns a negative deduction when Schedule C has a loss', () => {
+    const tr = baseTaxReturn({
+      selfEmployment: {
+        businessName: 'Loss Biz', businessCode: '541990', ein: '',
+        grossReceipts: 10000, returns: 0, costOfGoodsSold: 0,
+        expenses: { ...emptyExpenses(), officeExpense: 20000 },
+      },
+    })
+
+    expect(calculateQBIDeduction(tr, 50000)).toBe(0)
   })
 })
 
